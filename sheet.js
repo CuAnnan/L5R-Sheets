@@ -3,6 +3,7 @@ import xlsx from 'xlsx';
 import fetch from 'node-fetch';
 import Die from './Die.js';
 
+
 class Rollable
 {
     constructor(roll, keep)
@@ -56,6 +57,11 @@ class Trait extends Rollable
         this.name = name;
         this.value = value;
     }
+
+    toJSON()
+    {
+        return {name:this.name, value:this.value};
+    }
 }
 
 class Ring extends Trait
@@ -72,11 +78,17 @@ class Skill extends Rollable
         this.value = value;
         this.trait = trait.name;
     }
+
+    toJSON()
+    {
+        return {name:this.name, value:this.value, trait:this.trait};
+    }
 }
 
 
 class Sheet {
-    constructor(json) {
+    constructor(json, sheetURL) {
+        this.sheetURL = sheetURL
         this.traits = {};
         this._rollables = {};
         for(let [traitName, score] of Object.entries(json.traits))
@@ -131,11 +143,20 @@ class Sheet {
 
     toJSON()
     {
-        return {
-            traits:this.traits,
-            void:this.rings.void,
+        let json = {url:this.sheetURL, traits:{}, void:this.rings.void.toJSON(), skills:{}};
+
+        for(let trait of Object.values(this.traits))
+        {
+            json.traits[trait.name] = trait.toJSON();
         }
+        for(let skill of Object.values(this.skills))
+        {
+            json.skills[skill.name] = skill.toJSON();
+        }
+        return json;
     }
+
+
 
     static async fromGoogleSheetsURL(url)
     {
@@ -173,11 +194,14 @@ class Sheet {
             }
         }
 
-        return new Sheet({
-            void: baseSheet['A14'].v,
-            traits: traits,
-            skills:skills
-        });
+        return new Sheet(
+            {
+                void: baseSheet['A14'].v,
+                traits: traits,
+                skills:skills
+            },
+            url
+        );
     }
 
 }
