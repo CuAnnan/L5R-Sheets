@@ -11,20 +11,38 @@ class Rollable
         this.toKeep = keep;
     }
 
-    roll(emphasis)
+    roll(emphasis= false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0)
     {
         let diceRolled = [];
-        for(let i = 0; i < this.toRoll; i++)
+
+        let toRoll = this.toRoll + bonusToRoll;
+
+        let toKeep = this.toKeep + bonusToKeep;
+        if(toRoll > 10)
+        {
+            let leftOvers = toRoll - 10;
+            toRoll = 10;
+            let bonusKeep = Math.floor(leftOvers / 2);
+            toKeep += bonusKeep;
+            if(toKeep > 10)
+            {
+                bonusToResult += (toKeep - 10) * 2;
+                toKeep = 10;
+            }
+        }
+
+        for(let i = 0; i < toRoll; i++)
         {
             diceRolled.push(Die.roll(true, emphasis));
         }
-        let sortedDice = diceRolled.sort();
-        let result = 0;
-        for(let i = 0; i < this.toKeep; i++)
+        let sortedDice = diceRolled.sort((a, b)=>{return b - a;});
+        let result = bonusToResult;
+        for(let i = 0; i < toKeep; i++)
         {
             result += sortedDice[i];
         }
-        return {result:result, diceRolled:diceRolled, toRoll:this.toRoll, toKeep:this.toKeep}
+
+        return {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep}
     }
 }
 
@@ -106,9 +124,9 @@ class Sheet {
         }
     }
 
-    roll(rollableName)
+    roll(rollableName, emphasis = false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0)
     {
-        return this._rollables[rollableName].roll();
+        return this._rollables[rollableName].roll(emphasis, bonusToRoll, bonusToKeep, bonusToResult);
     }
 
     toJSON()
