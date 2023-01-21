@@ -1,14 +1,34 @@
+'use strict';
 import xlsx from 'xlsx';
 import fetch from 'node-fetch';
+import Die from './Die.js';
 
 class Rollable
 {
     constructor(roll, keep)
     {
-        this.roll = roll;
-        this.keep = keep;
+        this.toRoll = roll;
+        this.toKeep = keep;
+    }
+
+    roll(emphasis)
+    {
+        let diceRolled = [];
+        for(let i = 0; i < this.toRoll; i++)
+        {
+            diceRolled.push(Die.roll(true, emphasis));
+        }
+        let sortedDice = diceRolled.sort();
+        let result = 0;
+        for(let i = 0; i < this.toKeep; i++)
+        {
+            result += sortedDice[i];
+        }
+        return {result:result, diceRolled:diceRolled, toRoll:this.toRoll, toKeep:this.toKeep}
     }
 }
+
+
 
 class Trait extends Rollable
 {
@@ -37,7 +57,7 @@ class Skill extends Rollable
 }
 
 
-export default class Sheet {
+class Sheet {
     constructor(json) {
         this.traits = {};
         this._rollables = {};
@@ -73,15 +93,22 @@ export default class Sheet {
             {
                 trait= this.rings[traitName];
             }
+
             let skill = new Skill(skillJSON.name, trait, skillJSON.value);
             let skillNameLC = skill.name.toLowerCase();
             if(this.skills[skillNameLC] || this.traits[skillNameLC] || this.rings[skillNameLC])
             {
                 throw new Error(`Duplicate field key entry ${skill.name}`)
             }
+
             this.skills[skillNameLC] = skill;
             this._rollables[skillNameLC] = skill;
         }
+    }
+
+    roll(rollableName)
+    {
+        return this._rollables[rollableName].roll();
     }
 
     toJSON()
@@ -137,3 +164,4 @@ export default class Sheet {
 
 }
 
+export default Sheet;
