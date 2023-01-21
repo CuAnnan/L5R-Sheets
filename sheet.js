@@ -146,18 +146,20 @@ class Sheet {
         let spellSheet = document.Sheets[document.SheetNames[1]];
 
 
-        let traitRange = xlsx.utils.decode_range('C2:D13');
+        let traitRange = xlsx.utils.decode_range('B1:C12');
         let traits = {};
         for (let row = traitRange.s.r; row < traitRange.e.r; row++)
         {
-            let key_cell = baseSheet[xlsx.utils.encode_cell({c: traitRange.s.c, r: row})];
+            let key_cell_address = xlsx.utils.encode_cell({c: traitRange.s.c, r: row});
+            let key_cell = baseSheet[key_cell_address];
             if (key_cell) {
-                let value_cell = baseSheet[xlsx.utils.encode_cell({c: traitRange.e.c, r: row})];
+                let value_cell_address = xlsx.utils.encode_cell({c: traitRange.e.c, r: row});
+                let value_cell = baseSheet[value_cell_address];
                 traits[key_cell.v] = parseInt(value_cell.v);
             }
         }
 
-        let skillRange = xlsx.utils.decode_range('F3:I22');
+        let skillRange = xlsx.utils.decode_range('E2:H20');
         let skills = {};
         for(let row = skillRange.s.r; row < skillRange.e.r; row++)
         {
@@ -172,7 +174,7 @@ class Sheet {
         }
 
         return new Sheet({
-            void: baseSheet['B15'].v,
+            void: baseSheet['A14'].v,
             traits: traits,
             skills:skills
         });

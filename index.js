@@ -7,4 +7,3 @@ let sheet = await Sheet.fromGoogleSheetsURL(url).catch((e)=>{
     console.log(e);
 });
 
-console.log(sheet.roll('kenjutsu', true, 0, 0, 0));
