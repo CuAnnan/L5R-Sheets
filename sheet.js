@@ -85,16 +85,23 @@ class Skill extends Rollable
     }
 }
 
+function convertRowToSpell(row)
+{
+    console.log(row);
+}
+
 
 class Sheet {
     constructor(json, sheetURL) {
+        this.lastAccessed = Date.now();
         this.sheetURL = sheetURL
         this.traits = {};
         this._rollables = {};
-        for(let [traitName, score] of Object.entries(json.traits))
+        this.rank = json.rank;
+        for(let traitJSON of Object.values(json.traits))
         {
-            let trait = new Trait(traitName, score);
-            let lcTraitName = traitName.toLowerCase();
+            let trait = new Trait(traitJSON.name, traitJSON.value);
+            let lcTraitName = traitJSON.name.toLowerCase();
             this.traits[lcTraitName] = trait;
             this._rollables[lcTraitName] = trait;
         }
@@ -104,14 +111,14 @@ class Sheet {
             earth: new Ring('Earth', Math.min(this.traits.stamina.value, this.traits.willpower.value)),
             fire: new Ring('Fire', Math.min(this.traits.agility.value, this.traits.intelligence.value)),
             water: new Ring( 'Water', Math.min(this.traits.strength.value, this.traits.perception.value)),
-            void: new Ring('Void', json.void),
+            void: new Ring('Void', json.void.value),
         };
         for(let [ringName, ring] of Object.entries(this.rings))
         {
             this._rollables[ringName] = ring;
         }
         this.skills = {};
-        for(let [skillName, skillJSON] of Object.entries(json.skills))
+        for(let skillJSON of Object.values(json.skills))
         {
             let traitName = skillJSON.trait.toLowerCase();
             let trait;
@@ -125,7 +132,7 @@ class Sheet {
             }
 
             let skill = new Skill(skillJSON.name, trait, skillJSON.value);
-            let skillNameLC = skillName.toLowerCase();
+            let skillNameLC = skillJSON.name.toLowerCase();
             if(this.skills[skillNameLC] || this.traits[skillNameLC] || this.rings[skillNameLC])
             {
                 throw new Error(`Duplicate field key entry ${skill.name}`)
@@ -138,12 +145,13 @@ class Sheet {
 
     roll(rollableName, emphasis = false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0)
     {
+        this.lastAccessed = Date.now();
         return this._rollables[rollableName].roll(emphasis, bonusToRoll, bonusToKeep, bonusToResult);
     }
 
     toJSON()
     {
-        let json = {url:this.sheetURL, traits:{}, void:this.rings.void.toJSON(), skills:{}};
+        let json = {rank:this.rank, url:this.sheetURL, traits:{}, void:this.rings.void.toJSON(), skills:{}};
 
         for(let trait of Object.values(this.traits))
         {
@@ -176,7 +184,7 @@ class Sheet {
             if (key_cell) {
                 let value_cell_address = xlsx.utils.encode_cell({c: traitRange.e.c, r: row});
                 let value_cell = baseSheet[value_cell_address];
-                traits[key_cell.v] = parseInt(value_cell.v);
+                traits[key_cell.v] = {name:key_cell.v, value:parseInt(value_cell.v)};
             }
         }
 
@@ -194,11 +202,24 @@ class Sheet {
             }
         }
 
+        let spellRange = xlsx.utils.decode_range('B3:H3');
+        let currentSpellNameCell = spellSheet[xlsx.utils.encode_cell({c:spellRange.s.c, r:spellRange.s.r})];
+        while(currentSpellNameCell)
+        {
+            spellRange.s.r++;
+            spellRange.e.r++;
+            currentSpellNameCell = spellSheet[xlsx.utils.encode_cell({c:spellRange.s.c, r:spellRange.s.r})];
+        }
+        console.log('Done with spells');
+
+
+
         return new Sheet(
             {
-                void: baseSheet['A14'].v,
+                void: {value:baseSheet['A14'].v},
                 traits: traits,
-                skills:skills
+                skills:skills,
+                rank:baseSheet['N4'].v
             },
             url
         );

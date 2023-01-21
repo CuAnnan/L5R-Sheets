@@ -2,19 +2,23 @@ import {SlashCommandBuilder} from 'discord.js';
 import Sheet from '../sheet.js';
 import mongoClient from '../db.js';
 import SheetCache from '../SheetCache.js';
-
 let db = mongoClient.db('l5r');
 
 export default {
     data: new SlashCommandBuilder()
-        .setName('fetch-sheet')
+        .setName('roll')
         .setDescription('Fetches a sheet from google sheets')
         .addStringOption(option =>
             option
-                .setName('url')
+                .setName('rollable')
                 .setDescription('The published URL of the google sheet. This must be in xslx format.')
                 .setRequired(true))
-        ,
+        .addStringOption(option=>
+            option
+                .setName('emphasis')
+
+        )
+    ,
     async execute(interaction) {
         const url = interaction.options.getString('url');
         try
