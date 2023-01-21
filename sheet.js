@@ -42,7 +42,7 @@ class Rollable
             result += sortedDice[i];
         }
 
-        return {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep}
+        return {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep, bonus:bonusToResult};
     }
 }
 
@@ -113,7 +113,7 @@ class Sheet {
             }
 
             let skill = new Skill(skillJSON.name, trait, skillJSON.value);
-            let skillNameLC = skill.name.toLowerCase();
+            let skillNameLC = skillName.toLowerCase();
             if(this.skills[skillNameLC] || this.traits[skillNameLC] || this.rings[skillNameLC])
             {
                 throw new Error(`Duplicate field key entry ${skill.name}`)
@@ -171,13 +171,11 @@ class Sheet {
             }
         }
 
-        let sheet = new Sheet({
+        return new Sheet({
             void: baseSheet['B15'].v,
             traits: traits,
             skills:skills
         });
-
-        return sheet;
     }
 
 }
