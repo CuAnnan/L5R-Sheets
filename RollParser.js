@@ -76,7 +76,6 @@ function processArguments(parts)
 
 async function rollParser(stringToParse, guildId, userId)
 {
-    console.log(stringToParse);
     let parts = stringToParse.split(' ');
     let toRoll = parts.shift();
     let pool;
