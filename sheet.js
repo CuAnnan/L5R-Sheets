@@ -85,20 +85,29 @@ class Skill extends Rollable
     }
 }
 
-function convertRowToSpell(row)
+class Spell extends Rollable
 {
-    console.log(row);
+    constructor(name, ring, level, roll, keep)
+    {
+        super(roll, keep);
+        this.ring = ring;
+        this.name = name;
+        this.level = level;
+    }
 }
 
-
 class Sheet {
-    constructor(json, sheetURL) {
-        this.lastAccessed = Date.now();
-        this.sheetURL = sheetURL
+
+    /**
+     * A function to parse the json provided to the constructor into the stored values.
+     * This method also compiles the Ring Values
+     * @param traitsJSON    The value of each trait
+     * @param voidValue     This is needed for the rings part
+     */
+    parseTraits(traitsJSON, voidValue)
+    {
         this.traits = {};
-        this._rollables = {};
-        this.rank = json.rank;
-        for(let traitJSON of Object.values(json.traits))
+        for(let traitJSON of Object.values(traitsJSON))
         {
             let trait = new Trait(traitJSON.name, traitJSON.value);
             let lcTraitName = traitJSON.name.toLowerCase();
@@ -111,14 +120,18 @@ class Sheet {
             earth: new Ring('Earth', Math.min(this.traits.stamina.value, this.traits.willpower.value)),
             fire: new Ring('Fire', Math.min(this.traits.agility.value, this.traits.intelligence.value)),
             water: new Ring( 'Water', Math.min(this.traits.strength.value, this.traits.perception.value)),
-            void: new Ring('Void', json.void.value),
+            void: new Ring('Void', voidValue),
         };
         for(let [ringName, ring] of Object.entries(this.rings))
         {
             this._rollables[ringName] = ring;
         }
+    }
+
+    parseSkills(skillsJSON)
+    {
         this.skills = {};
-        for(let skillJSON of Object.values(json.skills))
+        for(let skillJSON of Object.values(skillsJSON))
         {
             let traitName = skillJSON.trait.toLowerCase();
             let trait;
@@ -140,6 +153,47 @@ class Sheet {
 
             this.skills[skillNameLC] = skill;
             this._rollables[skillNameLC] = skill;
+        }
+    }
+
+    parseShugenjaDetails(shugenjaJSON)
+    {
+        this.spells = {};
+        this.affinity = shugenjaJSON.affinity;
+        this.deficiency = shugenjaJSON.deficiency? shugenjaJSON.deficiency:null;
+        let spellCraftBonus = this.skills.spellcraft.value >= 5?1:0;
+
+
+        for(let spellJSON of shugenjaJSON.spells)
+        {
+            // constructor(name, ring, level, rank, roll, keep)
+            let ring = this.rings[spellJSON.ring.toLowerCase()];
+
+            let spell = new Spell(
+                spellJSON.name,
+                ring,
+                spellJSON.level,
+                ring.value + this.rank + spellCraftBonus + (ring.name === this.affinity ? 1 : 0) + (ring.name === this.deficiency ? -1 : 0),
+                ring.value
+            );
+            this.spells[spell.name.toLowerCase()] = spell;
+        }
+        console.log(this.spells);
+    }
+
+
+    constructor(json, sheetURL) {
+        this.lastAccessed = Date.now();
+        this.sheetURL = sheetURL
+        this._rollables = {};
+        this.rank = json.rank;
+
+        this.parseTraits(json.traits, json.void.value);
+        this.parseSkills(json.skills);
+
+        if(json.shugenja)
+        {
+            this.parseShugenjaDetails(json.shugenja);
         }
     }
 
@@ -202,24 +256,50 @@ class Sheet {
             }
         }
 
-        let spellRange = xlsx.utils.decode_range('B3:H3');
-        let currentSpellNameCell = spellSheet[xlsx.utils.encode_cell({c:spellRange.s.c, r:spellRange.s.r})];
-        while(currentSpellNameCell)
+        let shugenjaStuff = {};
+        let shugenjaAffinityRingCell = spellSheet['C1'];
+        if(shugenjaAffinityRingCell)
         {
-            spellRange.s.r++;
-            spellRange.e.r++;
-            currentSpellNameCell = spellSheet[xlsx.utils.encode_cell({c:spellRange.s.c, r:spellRange.s.r})];
+            shugenjaStuff.spells = [];
+            shugenjaStuff.affinity = shugenjaAffinityRingCell.v;
+            let deficiencyRingCell = spellSheet['E1'];
+            // Phoenix Shugenja don't have deficiencies.
+            if(deficiencyRingCell)
+            {
+                shugenjaStuff.deficiency = deficiencyRingCell.v;
+            }
+
+            let spellRange = xlsx.utils.decode_range('B3:H3');
+            let address = {c:spellRange.s.c, r:spellRange.s.r}
+            let currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
+
+
+            while(currentSpellNameCell)
+            {
+                let rollBonusCell = spellSheet[xlsx.utils.encode_cell({c:address.c + 3, r:address.r})];
+                let keepBonusCell = spellSheet[xlsx.utils.encode_cell({c:address.c + 4, r:address.r})];
+                let spellJSON = {
+                    name:       currentSpellNameCell.v,
+                    ring:       spellSheet[xlsx.utils.encode_cell({c:address.c + 1, r:address.r})].v,
+                    level:      parseInt(spellSheet[xlsx.utils.encode_cell({c:address.c + 2, r:address.r})].v),
+                    rollBonus:  rollBonusCell?parseInt(rollBonusCell.v):0,
+                    keepBonus:  keepBonusCell?parseInt(keepBonusCell.v):0,
+                }
+                shugenjaStuff.spells.push(spellJSON);
+                spellRange.s.r++;
+                spellRange.e.r++;
+                address = {c:spellRange.s.c, r:spellRange.s.r}
+                currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
+            }
         }
-        console.log('Done with spells');
-
-
 
         return new Sheet(
             {
                 void: {value:baseSheet['A14'].v},
                 traits: traits,
                 skills:skills,
-                rank:baseSheet['N4'].v
+                rank:parseInt(baseSheet['N4'].v),
+                shugenja:shugenjaStuff
             },
             url
         );

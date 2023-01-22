@@ -8,6 +8,4 @@ let sheet = await Sheet.fromGoogleSheetsURL(url).catch((e)=>{
     console.log(e);
 });
 
-
-SheetCache.storeSheet('1', '2', sheet);
-SheetCache.storeSheet('2', '3', sheet);
+//console.log(sheet.toJSON());
