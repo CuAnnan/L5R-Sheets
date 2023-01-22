@@ -6,7 +6,7 @@ const conf = JSON.parse(jsonFile);
 let userStuff = '';
 if(conf.mongo)
 {
-    userStuff = `${conf.mongo.user}:${conf.mongo.password}@`;
+    userStuff = `${conf.mongo.user}:${encodeURIComponent(conf.mongo.password)}@`;
 }
 
 let mongoUrl = `mongodb://${userStuff}localhost:27017/l5r`;
