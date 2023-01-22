@@ -6,7 +6,7 @@ class Die
         return Math.floor(Math.random() * 10) + 1;
     }
 
-    static roll(reroll10s = true, emphasis = false)
+    static roll(reroll10s = true, emphasis = false, rerollValue=10)
     {
         let face = this.rollOnce();
         if(emphasis && face === 1)
@@ -16,7 +16,7 @@ class Die
         let value = face;
         if(reroll10s)
         {
-            while(face === 10)
+            while(face >= rerollValue)
             {
                 face = this.rollOnce();
                 value += face;

@@ -1,55 +1,9 @@
 'use strict';
 import xlsx from 'xlsx';
 import fetch from 'node-fetch';
-import Die from './Die.js';
+import Pool from './Pool.js';
 
-
-class Rollable
-{
-    constructor(roll, keep)
-    {
-        this.toRoll = roll;
-        this.toKeep = keep;
-    }
-
-    roll(emphasis= false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0)
-    {
-        let diceRolled = [];
-
-        let toRoll = this.toRoll + bonusToRoll;
-
-        let toKeep = this.toKeep + bonusToKeep;
-        if(toRoll > 10)
-        {
-            let leftOvers = toRoll - 10;
-            toRoll = 10;
-            let bonusKeep = Math.floor(leftOvers / 2);
-            toKeep += bonusKeep;
-            if(toKeep > 10)
-            {
-                bonusToResult += (toKeep - 10) * 2;
-                toKeep = 10;
-            }
-        }
-
-        for(let i = 0; i < toRoll; i++)
-        {
-            diceRolled.push(Die.roll(true, emphasis));
-        }
-        let sortedDice = diceRolled.sort((a, b)=>{return b - a;});
-        let result = bonusToResult;
-        for(let i = 0; i < toKeep; i++)
-        {
-            result += sortedDice[i];
-        }
-
-        return {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep, bonus:bonusToResult};
-    }
-}
-
-
-
-class Trait extends Rollable
+class Trait extends Pool
 {
     constructor(name, value)
     {
@@ -69,7 +23,7 @@ class Ring extends Trait
 
 }
 
-class Skill extends Rollable
+class Skill extends Pool
 {
     constructor(name, trait, value)
     {
@@ -85,14 +39,27 @@ class Skill extends Rollable
     }
 }
 
-class Spell extends Rollable
+class Spell extends Pool
 {
-    constructor(name, ring, level, roll, keep)
+    constructor(name, ring, level, roll, keep, rollBonus, keepBonus)
     {
         super(roll, keep);
         this.ring = ring;
         this.name = name;
         this.level = level;
+        this.rollBonus = rollBonus;
+        this.keepBonus = keepBonus
+    }
+
+    toJSON()
+    {
+        return {
+            name:       this.name,
+            ring:       this.ring.name,
+            level:      this.level,
+            rollBonus:  this.rollBonus,
+            keepBonus:  this.keepBonus
+        }
     }
 }
 
@@ -173,12 +140,14 @@ class Sheet {
                 spellJSON.name,
                 ring,
                 spellJSON.level,
-                ring.value + this.rank + spellCraftBonus + (ring.name === this.affinity ? 1 : 0) + (ring.name === this.deficiency ? -1 : 0),
-                ring.value
+                ring.value + this.rank + spellCraftBonus + (ring.name === this.affinity ? 1 : 0) + (ring.name === this.deficiency ? -1 : 0) + spellJSON.rollBonus,
+                ring.value + spellJSON.keepBonus,
+                spellJSON.rollBonus,
+                spellJSON.keepBonus
             );
             this.spells[spell.name.toLowerCase()] = spell;
+            this._rollables[spell.name.toLowerCase()] = spell;
         }
-        console.log(this.spells);
     }
 
 
@@ -203,6 +172,19 @@ class Sheet {
         return this._rollables[rollableName].roll(emphasis, bonusToRoll, bonusToKeep, bonusToResult);
     }
 
+    getPool(name)
+    {
+        this.lastAccessed = Date.now();
+        if(this._rollables[name])
+        {
+            return this._rollables[name];
+        }
+        else
+        {
+            console.log(this._rollables);
+        }
+    }
+
     toJSON()
     {
         let json = {rank:this.rank, url:this.sheetURL, traits:{}, void:this.rings.void.toJSON(), skills:{}};
@@ -214,6 +196,28 @@ class Sheet {
         for(let skill of Object.values(this.skills))
         {
             json.skills[skill.name] = skill.toJSON();
+        }
+
+        if(this.spells)
+        {
+            /*
+            this.spells = {};
+            this.affinity = shugenjaJSON.affinity;
+            this.deficiency = shugenjaJSON.deficiency? shugenjaJSON.deficiency:null;
+             */
+            json.shugenja = {
+                affinity:this.affinity
+            };
+
+            if(this.deficiency)
+            {
+                json.shugenja.deficiency = this.deficiency;
+            }
+            json.shugenja.spells = [];
+            for(let spell of Object.values(this.spells))
+            {
+                json.shugenja.spells.push(spell.toJSON());
+            }
         }
         return json;
     }

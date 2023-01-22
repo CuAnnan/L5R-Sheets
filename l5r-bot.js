@@ -4,22 +4,15 @@ import { Client, Events, GatewayIntentBits, Collection } from 'discord.js';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import mongoClient from './db.js';
 
-
-
-
-
-let jsonFile = fs.readFileSync('./config.json').toString();
-let conf = JSON.parse(jsonFile);
-
+const jsonFile = fs.readFileSync('./config.json').toString();
+const conf = JSON.parse(jsonFile);
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-
-client.commands = new Collection();
 
 const commandsPath = path.join(__dirname, 'bot-commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+client.commands = new Collection();
 
 for (const file of commandFiles) {
      const module = await(import(`./bot-commands/${file}`));
@@ -39,6 +32,7 @@ client.once(Events.ClientReady, c => {
 
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
+
 
     const command = interaction.client.commands.get(interaction.commandName);
 

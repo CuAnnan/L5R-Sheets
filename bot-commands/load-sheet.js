@@ -24,7 +24,7 @@ export default {
                 let sheetJSON = sheet.toJSON();
                 db.collection('sheets').updateOne({guildId:interaction.guildId, userId:interaction.user.id}, {$set:{sheet:sheetJSON}}, {upsert:true});
                 SheetCache.storeSheet(interaction.guildId, interaction.user.id, sheet);
-                interaction.reply('Your sheet has been updated.');
+                interaction.reply({content:'Your sheet has been updated.', ephemeral:true});
             });
         }
         catch(e)

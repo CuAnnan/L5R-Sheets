@@ -25,7 +25,6 @@ class SheetCache
 
         for(let [key, sheet] of Object.entries(this.sheetsByServerAndUser))
         {
-            console.log(key, sheet);
             if(now - sheet.lastAccessed >= this.timeoutLife)
             {
                 toDelete.push(key);
