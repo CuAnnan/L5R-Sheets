@@ -10,6 +10,7 @@ if(conf.mongo)
 }
 
 let mongoUrl = `mongodb://${userStuff}localhost:27017/l5r`;
+console.log(mongoUrl);
 
 let mongoClient = new MongoClient(mongoUrl);
 
