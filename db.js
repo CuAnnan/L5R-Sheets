@@ -9,8 +9,7 @@ if(conf.mongo)
     userStuff = `${conf.mongo.user}:${encodeURIComponent(conf.mongo.password)}@`;
 }
 
-let mongoUrl = `mongodb://${userStuff}localhost:27017/l5r`;
-console.log(mongoUrl);
+let mongoUrl = `mongodb://${userStuff}localhost:27017/l5r?directConnection=true`;
 
 let mongoClient = new MongoClient(mongoUrl);
 
