@@ -1,5 +1,5 @@
 import {SlashCommandBuilder} from 'discord.js';
-import rollParser from '../rollparser.js';
+import rollParser from '../RollParser.js';
 
 export default {
     data: new SlashCommandBuilder()
