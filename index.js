@@ -1,4 +1,5 @@
-import Sheet from './sheet.js';
+import FaW from './fortune-and-winds.js';
+/*import Sheet from './sheet.js';
 //import SheetCache from './SheetCache.js';
 import mongoClient from "./db.js";
 
@@ -24,3 +25,15 @@ mongoClient.connect().then(async function(){
 // });
 
 //console.log(sheet.toJSON());
+ */
+
+let faw = new FaW();
+
+for(let i = 0; i < 100; i++)
+{
+    let roll = faw.roll();
+    console.log(roll);
+    let hand = faw.getHand();
+    console.log(hand);
+    console.log(FaW.checkHand(hand).payout);
+}
