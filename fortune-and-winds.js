@@ -22,7 +22,7 @@ class FortuneAndWindsDie
         {
             return;
         }
-        this.keeping = !this.keeping;
+        this.keeping = true;
     }
 
     isKept()
@@ -54,6 +54,12 @@ class FortuneAndWinds
     constructor()
     {
         this.throws = 0;
+        this.buildDice();
+        this.faces = [];
+    }
+
+    buildDice()
+    {
         this.dice = {
             "earth":new FortuneAndWindsDie("Earth", ["Earth", "Earth", "Earth", "North", "North", "Rice"]),
             "water":new FortuneAndWindsDie("Water", ["Water", "Water", "Water", "East", "East", "Fish"]),
@@ -61,7 +67,6 @@ class FortuneAndWinds
             "air": new FortuneAndWindsDie("Air",  ["Air", "Air", "Air", "South", "South", "Bird"]),
             "void": new FortuneAndWindsDie("Void",  ["Void", "Void", "Fortunes", "Fortunes", "Sun", "Moon"], false),
         };
-        this.faces = [];
     }
 
     static checkHand(handAsString)
@@ -79,15 +84,29 @@ class FortuneAndWinds
         {
             return this.faces;
         }
-        this.faces = [];
+        this.faces = {};
         for(let die of Object.values(this.dice))
         {
             if(!die.isKept())
             {
                 die.roll();
             }
-            this.faces.push(die.toString());
+            this.faces[die.name] = die.face;
         }
+
+        if(this.dice.void.face === 'Moon')
+        {
+            this.throws = 3;
+            return this.faces;
+        }
+
+        let result = FortuneAndWinds.checkHand(this.getHand());
+        if(result.payout)
+        {
+            this.throws = 3;
+            return this.faces;
+        }
+
         this.throws++;
         return this.faces;
     }
@@ -96,8 +115,21 @@ class FortuneAndWinds
     {
         for(let dieName of diceNames)
         {
-            this.dice[dieName.toLowerCase()].keep();
+            this.dice[dieName.trim().toLowerCase()].keep();
         }
+        let dice = {keep:[], roll:[]}
+        for(let die of Object.values(this.dice))
+        {
+            if(die.keeping)
+            {
+                dice.keep.push(die.name);
+            }
+            else
+            {
+                dice.roll.push(die.name);
+            }
+        }
+        return dice;
     }
 
     getHand()
