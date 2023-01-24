@@ -263,7 +263,7 @@ class Sheet {
         let extraSkillValue = extraSkillsSheet[`D${row}`];
         while(extraSkillCell && extraSkillTrait && extraSkillValue)
         {
-            let skill = {name:extraSkillCell.v, trait:extraSkillsSheet[`C${row}`].v, value:extraSkillValue};
+            let skill = {name:extraSkillCell.v, trait:extraSkillsSheet[`C${row}`].v, value:extraSkillValue.v};
             skills[skill.name] = skill;
             row++;
             extraSkillCell = extraSkillsSheet[`A${row}`];
