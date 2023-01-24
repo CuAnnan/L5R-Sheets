@@ -228,7 +228,7 @@ class Sheet {
         let document = xlsx.read(buffer);
         let baseSheet = document.Sheets[document.SheetNames[0]];
         let spellSheet = document.Sheets[document.SheetNames[1]];
-
+        let extraSkillsSheet = document.Sheets[document.SheetNames[2]];
 
         let traitRange = xlsx.utils.decode_range('B1:C12');
         let traits = {};
@@ -255,6 +255,20 @@ class Sheet {
                 let skill = {name:skill_key_cell.v, trait:trait_key_cell.v, value:value_cell.v}
                 skills[skill.name] = skill;
             }
+        }
+
+        let row = 2;
+        let extraSkillCell = extraSkillsSheet[`A${row}`];
+        let extraSkillTrait = extraSkillsSheet[`C${row}`];
+        let extraSkillValue = extraSkillsSheet[`D${row}`];
+        while(extraSkillCell && extraSkillTrait && extraSkillValue)
+        {
+            let skill = {name:extraSkillCell.v, trait:extraSkillsSheet[`C${row}`].v, value:extraSkillValue};
+            skills[skill.name] = skill;
+            row++;
+            extraSkillCell = extraSkillsSheet[`A${row}`];
+            extraSkillTrait = extraSkillsSheet[`C${row}`];
+            extraSkillValue = extraSkillsSheet[`D${row}`];
         }
 
         let shugenjaStuff = {};
