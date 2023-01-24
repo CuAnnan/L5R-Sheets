@@ -128,7 +128,8 @@ class Sheet {
         this.spells = {};
         this.affinity = shugenjaJSON.affinity;
         this.deficiency = shugenjaJSON.deficiency? shugenjaJSON.deficiency:null;
-        let spellCraftBonus = this.skills.spellcraft.value >= 5?1:0;
+
+        let spellCraftBonus = (this.skills.spellcraft && this.skills.spellcraft.value >= 5)?1:0;
 
 
         for(let spellJSON of shugenjaJSON.spells)

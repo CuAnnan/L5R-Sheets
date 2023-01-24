@@ -17,19 +17,13 @@ export default {
         ,
     async execute(interaction) {
         const url = interaction.options.getString('url');
-        try
-        {
-
-            Sheet.fromGoogleSheetsURL(url).then(function(sheet) {
-                let sheetJSON = sheet.toJSON();
-                db.collection('sheets').updateOne({guildId:interaction.guildId, userId:interaction.user.id}, {$set:{sheet:sheetJSON}}, {upsert:true});
-                SheetCache.storeSheet(interaction.guildId, interaction.user.id, sheet);
-                interaction.reply({content:'Your sheet has been updated.', ephemeral:true});
-            });
-        }
-        catch(e)
-        {
-            interaction.reply("I'm sorry, there was an error loading your sheet");
-        }
+        Sheet.fromGoogleSheetsURL(url).then(function(sheet) {
+            let sheetJSON = sheet.toJSON();
+            db.collection('sheets').updateOne({guildId:interaction.guildId, userId:interaction.user.id}, {$set:{sheet:sheetJSON}}, {upsert:true});
+            SheetCache.storeSheet(interaction.guildId, interaction.user.id, sheet);
+            interaction.reply({content:'Your sheet has been updated.', ephemeral:true});
+        }).catch((e)=>{
+            console.log(e);
+        });
     },
 };
