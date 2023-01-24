@@ -154,7 +154,7 @@ class Sheet {
 
     constructor(json, sheetURL) {
         this.lastAccessed = Date.now();
-        this.sheetURL = sheetURL
+        this.sheetURL = sheetURL?sheetURL:json.url;
         this._rollables = {};
         this.rank = json.rank;
 
