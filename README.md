@@ -24,3 +24,5 @@ Optional fields:
 +<amount> adds <amount> to the final result
 vs:<TN> or tn:<TN> rolls against a TN Of <TN>
 ```
+
+To add this bot to your server, click on this [OAuth Link](https://discord.com/api/oauth2/authorize?client_id=1066266166961639464&permissions=68608&scope=bot%20applications.commands)
