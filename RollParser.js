@@ -34,7 +34,7 @@ function processArguments(parts)
     let extraResponseParts = [];
     for(let part of parts)
     {
-        part = part.trim();
+        part = part.trim().toLowerCase();
         if(part === '!no10s' || part === "!nr")
         {
             args.reroll10s=false;
@@ -47,13 +47,17 @@ function processArguments(parts)
         {
             args.rerollValue = parseInt(part.substring(3));
         }
+        else if(part.startsWith('vs:') || part.startsWith('tn:'))
+        {
+            args.tn = parseInt(part.substring(3));
+        }
         else
         {
-            let bonusnKm = part.match(/\+(\d+)k(\d+)/);
-            if(bonusnKm)
+            let bonus_nKm = part.match(/\+(\d+)k(\d+)/);
+            if(bonus_nKm)
             {
-                args.bonusToRoll = parseInt(bonusnKm[1]);
-                args.bonusToKeep = parseInt(bonusnKm[2]);
+                args.bonusToRoll = parseInt(bonus_nKm[1]);
+                args.bonusToKeep = parseInt(bonus_nKm[2]);
             }
             else
             {
@@ -69,6 +73,7 @@ function processArguments(parts)
             }
         }
     }
+    console.log(args);
     return [args, extraResponseParts];
 }
 
@@ -121,14 +126,18 @@ async function rollParser(stringToParse, guildId, userId)
 
     if(pool)
     {
-        roll = pool.roll(args.emphasis, args.bonusToRoll, args.bonusToKeep, args.bonusToResult, args.reroll10s, args.rerollValue);
+        roll = pool.roll(args.emphasis, args.bonusToRoll, args.bonusToKeep, args.bonusToResult, args.reroll10s, args.rerollValue, args.tn);
     }
 
     let response;
 
     if(roll)
     {
-        response = `You rolled ${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}.\n${roll.diceRolled}\nResult: ${roll.result}`;
+        response = `You rolled **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` vs **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
+        if(roll.tn)
+        {
+            response += `, which was a ${roll.success}`;
+        }
     }
 
     if(extraResponseParts)

@@ -8,7 +8,7 @@ class Pool
         this.toKeep = keep;
     }
 
-    roll(emphasis= false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0, rerolls = true, rerollValue = 10)
+    roll(emphasis= false, bonusToRoll = 0, bonusToKeep = 0, bonusToResult = 0, rerolls = true, rerollValue = 10, tn)
     {
         let diceRolled = [];
 
@@ -39,7 +39,22 @@ class Pool
             result += sortedDice[i];
         }
 
-        return {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep, bonus:bonusToResult};
+        let response = {result:result, diceRolled:diceRolled, toRoll:toRoll, toKeep:toKeep, bonus:bonusToResult};
+
+        if(tn)
+        {
+            response.tn = tn;
+            if(result >= tn)
+            {
+                response.success = 'success';
+            }
+            else
+            {
+                response.success = 'failure';
+            }
+        }
+
+        return response;
     }
 }
 
