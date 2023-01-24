@@ -243,7 +243,7 @@ class Sheet {
             }
         }
 
-        let skillRange = xlsx.utils.decode_range('E2:H20');
+        let skillRange = xlsx.utils.decode_range('E2:H21');
         let skills = {};
         for(let row = skillRange.s.r; row < skillRange.e.r; row++)
         {
