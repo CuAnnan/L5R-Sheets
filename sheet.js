@@ -27,7 +27,7 @@ class Skill extends Pool
 {
     constructor(name, trait, value)
     {
-        super(trait.value + value, value);
+        super(trait.value + value, trait.value);
         this.name = name;
         this.value = value;
         this.trait = trait.name;
