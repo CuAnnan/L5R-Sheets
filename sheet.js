@@ -179,10 +179,6 @@ class Sheet {
         {
             return this._rollables[name];
         }
-        else
-        {
-            console.log(this._rollables);
-        }
     }
 
     toJSON()
