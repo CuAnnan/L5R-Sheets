@@ -16,7 +16,7 @@ export default {
         if(args.toLowerCase()==='help')
         {
             interaction.reply(
-                '***Roll Syntax***\n\n' +
+                '```***Roll Syntax***\n\n' +
                 '/roll <nKm or a ring, trait, skill, or spell>[ !no10s|!nr][ !rv<reroll value>][ !e][ +nKm][ +<amount>]\n\n' +
                 'Fields in <> are mandatory, fields in [] are optional.\n\n' +
                 '**Optional fields:**\n' +
@@ -24,7 +24,7 @@ export default {
                 '**\!rv<reroll value>**: Reroll on <reroll value> instead of 10.\n' +
                 '**!e**: reroll 1s once each for emphases\n' +
                 '**+nKm**: add +nKm to the rolled value (mostly useful in rolling off your sheet rather than raw nKm but can be used in either)\n**' +
-                '+<amount>** adds <amount> to the final result');
+                '+<amount>** adds <amount> to the final result```');
             return;
         }
         rollParser(args, interaction.guildId, interaction.user.id).then((response)=>{
