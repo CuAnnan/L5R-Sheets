@@ -36,12 +36,12 @@ export default {
             if(!sheet)
             {
                 let sheetDocument = await db.collection('sheets').findOne({userId:userId, guildId:guildId});
-                let sheetJSON = sheetDocument.sheet;
-                if(!sheetJSON)
+                if(!sheetDocument)
                 {
                     interaction.reply({content:'No sheet could be found for user', ephemeral:true});
                     return;
                 }
+                let sheetJSON = sheetDocument.sheet;
                 sheet = new Sheet(sheetJSON);
                 SheetCache.storeSheet(guildId, userId, sheet);
             }

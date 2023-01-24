@@ -14,11 +14,11 @@ async function processSheetBasedRoll(toRoll, guildId, userId)
     if(!sheet)
     {
         let sheetDocument = await db.collection('sheets').findOne({userId:userId, guildId:guildId});
-        let sheetJSON = sheetDocument.sheet;
-        if(!sheetJSON)
+        if(!sheetDocument)
         {
             throw new Error('No sheet could be found for user');
         }
+        let sheetJSON = sheetDocument.sheet;
         sheet = new Sheet(sheetJSON);
         SheetCache.storeSheet(guildId, userId, sheet);
     }
