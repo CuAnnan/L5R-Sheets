@@ -22,8 +22,6 @@ async function processSheetBasedRoll(toRoll, guildId, userId)
         sheet = new Sheet(sheetJSON);
         SheetCache.storeSheet(guildId, userId, sheet);
     }
-    console.log(`Getting pool for ${toRoll}`);
-    console.log(sheet.getPool(toRoll));
 
     return sheet.getPool(toRoll);
 }
@@ -73,7 +71,6 @@ function processArguments(parts)
             }
         }
     }
-    console.log(args);
     return [args, extraResponseParts];
 }
 
@@ -133,7 +130,7 @@ async function rollParser(stringToParse, guildId, userId)
 
     if(roll)
     {
-        response = `You rolled **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` vs **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
+        response = `You rolled **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
         if(roll.tn)
         {
             response += `, which was a ${roll.success}`;
