@@ -4,6 +4,7 @@ import Sheet from './sheet.js';
 import mongoClient from './db.js';
 import SheetCache from './SheetCache.js';
 import Pool from './Pool.js';
+//import logger from './logger.js';
 
 let db = mongoClient.db('l5r');
 
@@ -16,14 +17,19 @@ async function processSheetBasedRoll(toRoll, guildId, userId)
         let sheetDocument = await db.collection('sheets').findOne({userId:userId, guildId:guildId});
         if(!sheetDocument)
         {
-            throw new Error('No sheet could be found for user');
+            throw new Error('No sheet could be found');
         }
         let sheetJSON = sheetDocument.sheet;
         sheet = new Sheet(sheetJSON);
         SheetCache.storeSheet(guildId, userId, sheet);
     }
 
-    return sheet.getPool(toRoll);
+    let pool = sheet.getPool(toRoll);
+    if(!pool)
+    {
+        throw new Error(`Nothing called ${toRoll} could be found on your sheet`);
+    }
+    return pool;
 }
 
 function processArguments(parts)
@@ -107,15 +113,10 @@ async function rollParser(stringToParse, guildId, userId)
         try
         {
             pool = await processSheetBasedRoll(toRoll.toLowerCase(), guildId, userId);
-            if(!pool)
-            {
-                return `I could not find a pool for ${toRoll} on your sheet.`;
-            }
         }
         catch(e)
         {
-            console.log(e);
-            return 'There was a problem fetching your sheet from the system. Have you run the /fetch-sheet command?'
+            throw e;
         }
     }
 
