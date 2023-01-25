@@ -232,6 +232,7 @@ class Sheet {
         let traits = {};
         let skills = {};
         let shugenjaStuff = {};
+        let errPrefix = `The sheet at ${url} could not be read.\n`;
 
         try
         {
@@ -248,7 +249,7 @@ class Sheet {
         }
         catch(e)
         {
-            throw new Error('There was a problem loading your traits');
+            throw new Error(`${errPrefix}There was a problem reading the traits range`);
         }
 
         try
@@ -266,7 +267,7 @@ class Sheet {
         }
         catch(e)
         {
-            throw new Error('There was a problem loading your page1 skills')
+            throw new Error(`${errPrefix}There was a problem reading the sheet 1 skills range`);
         }
 
         try
@@ -287,7 +288,7 @@ class Sheet {
         }
         catch(e)
         {
-            throw new Error('There was a problem loading your page 3 skills');
+            throw new Error(`${errPrefix}There was a problem reading the sheet 3 skills range`);
         }
 
         try
@@ -327,17 +328,22 @@ class Sheet {
         }
         catch(e)
         {
-            throw new Error('There was a problem loading your Shugenja sheet');
+            throw new Error(`${errPrefix}There was a problem loading your Shugenja sheet`);
         }
+
+        let voidScore = null;
+        let rankScore = null;
 
         try
         {
+            voidScore = {value: baseSheet['A14'].v};
+            rankScore = parseInt(baseSheet['N4'].v);
             return new Sheet(
                 {
-                    void: {value: baseSheet['A14'].v},
+                    void: voidScore,
                     traits: traits,
                     skills: skills,
-                    rank: parseInt(baseSheet['N4'].v),
+                    rank: rankScore,
                     shugenja: shugenjaStuff
                 },
                 url
@@ -345,7 +351,8 @@ class Sheet {
         }
         catch(e)
         {
-            throw new Error('There was a problem reading either your void or rank');
+
+            throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore?'Void':'Rank'} score`);
         }
     }
 

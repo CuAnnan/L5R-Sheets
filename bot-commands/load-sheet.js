@@ -25,7 +25,7 @@ export default {
             interaction.reply({content:'Your sheet has been updated.', ephemeral:true});
         }).catch((e)=>{
             logger.warn(e);
-            interaction.reply({content:'There was an error loading your sheet, a log file has been created', ephemeral:true});
+            interaction.reply({content:e.message, ephemeral:true});
         });
     },
 };
