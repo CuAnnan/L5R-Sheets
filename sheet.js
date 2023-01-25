@@ -110,6 +110,10 @@ class Sheet {
             {
                 trait= this.rings[traitName];
             }
+            if(!trait)
+            {
+                throw new Error(`No trait ${traitName} could be found`);
+            }
 
             let skill = new Skill(skillJSON.name, trait, skillJSON.value);
             let skillNameLC = skillJSON.name.toLowerCase();
