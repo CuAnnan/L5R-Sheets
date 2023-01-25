@@ -2,6 +2,7 @@ import {SlashCommandBuilder} from 'discord.js';
 import Sheet from '../sheet.js';
 import mongoClient from '../db.js';
 import SheetCache from '../SheetCache.js';
+import logger from '../logger.js';
 
 let db = mongoClient.db('l5r');
 
@@ -23,7 +24,8 @@ export default {
             SheetCache.storeSheet(interaction.guildId, interaction.user.id, sheet);
             interaction.reply({content:'Your sheet has been updated.', ephemeral:true});
         }).catch((e)=>{
-            console.log(e);
+            logger.warn(e);
+            interaction.reply({content:'There was an error loading your sheet, a log file has been created', ephemeral:true});
         });
     },
 };
