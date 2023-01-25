@@ -230,9 +230,10 @@ class Sheet {
 
     static async fromGoogleSheetsURL(url)
     {
+        //https://docs.google.com/spreadsheets/d/e/2PACX-1vQmevaQAKU6XyG-za5-6E7jSWKnTyAWD8gRP3cwxqSGEpUjtIZE_K2pa9Qxq7RDGVd_qyoajVymKPOb/pubhtml
         if(url.endsWith('pubhtml'))
         {
-            url.replace(/pubhtml$/, 'pub=xlsx');
+            url = url.replace(/pubhtml$/, 'pub?output=xlsx');
         }
 
         let response = await fetch(url);
@@ -351,7 +352,6 @@ class Sheet {
         {
             throw new Error(`${errPrefix}There was a problem loading your Shugenja sheet`);
         }
-        console.log(shugenjaStuff.spells);
 
         let voidScore = null;
         let rankScore = null;
