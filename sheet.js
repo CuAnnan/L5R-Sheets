@@ -136,7 +136,10 @@ class Sheet {
         {
             // constructor(name, ring, level, rank, roll, keep)
             let ring = this.rings[spellJSON.ring.toLowerCase()];
-
+            if(!ring)
+            {
+                throw new Error(`No ring ${spellJSON.ring} can be found`);
+            }
             let spell = new Spell(
                 spellJSON.name,
                 ring,
@@ -223,6 +226,11 @@ class Sheet {
 
     static async fromGoogleSheetsURL(url)
     {
+        if(url.endsWith('pubhtml'))
+        {
+            url.replace(/pubhtml$/, 'pub=xlsx');
+        }
+
         let response = await fetch(url);
         let buffer = await response.arrayBuffer();
         let document = xlsx.read(buffer);
@@ -311,18 +319,27 @@ class Sheet {
                 while (currentSpellNameCell) {
                     let rollBonusCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 3, r: address.r})];
                     let keepBonusCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 4, r: address.r})];
-                    let spellJSON = {
-                        name: currentSpellNameCell.v,
-                        ring: spellSheet[xlsx.utils.encode_cell({c: address.c + 1, r: address.r})].v,
-                        level: parseInt(spellSheet[xlsx.utils.encode_cell({c: address.c + 2, r: address.r})].v),
-                        rollBonus: rollBonusCell ? parseInt(rollBonusCell.v) : 0,
-                        keepBonus: keepBonusCell ? parseInt(keepBonusCell.v) : 0,
+                    let ringCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 1, r: address.r})];
+                    let levelCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 2, r: address.r})];
+
+                    if(currentSpellNameCell && ringCell && levelCell)
+                    {
+                        shugenjaStuff.spells.push({
+                            name: currentSpellNameCell.v,
+                            ring: ringCell.v,
+                            level: parseInt(levelCell.v),
+                            rollBonus: rollBonusCell ? parseInt(rollBonusCell.v) : 0,
+                            keepBonus: keepBonusCell ? parseInt(keepBonusCell.v) : 0,
+                        });
+                        spellRange.s.r++;
+                        spellRange.e.r++;
+                        address = {c: spellRange.s.c, r: spellRange.s.r}
+                        currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
                     }
-                    shugenjaStuff.spells.push(spellJSON);
-                    spellRange.s.r++;
-                    spellRange.e.r++;
-                    address = {c: spellRange.s.c, r: spellRange.s.r}
-                    currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
+                    else
+                    {
+                        currentSpellNameCell = null;
+                    }
                 }
             }
         }
@@ -330,6 +347,7 @@ class Sheet {
         {
             throw new Error(`${errPrefix}There was a problem loading your Shugenja sheet`);
         }
+        console.log(shugenjaStuff.spells);
 
         let voidScore = null;
         let rankScore = null;
@@ -338,22 +356,22 @@ class Sheet {
         {
             voidScore = {value: baseSheet['A14'].v};
             rankScore = parseInt(baseSheet['N4'].v);
-            return new Sheet(
-                {
-                    void: voidScore,
-                    traits: traits,
-                    skills: skills,
-                    rank: rankScore,
-                    shugenja: shugenjaStuff
-                },
-                url
-            );
         }
         catch(e)
         {
-
             throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore?'Void':'Rank'} score`);
         }
+
+        return new Sheet(
+            {
+                void: voidScore,
+                traits: traits,
+                skills: skills,
+                rank: rankScore,
+                shugenja: shugenjaStuff
+            },
+            url
+        );
     }
 
 }
