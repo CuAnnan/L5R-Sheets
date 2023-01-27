@@ -28,8 +28,6 @@ class Pool
             }
         }
 
-        console.log(toRoll, toKeep);
-
         for(let i = 0; i < toRoll; i++)
         {
             diceRolled.push(Die.roll(rerolls, emphasis, rerollValue));
