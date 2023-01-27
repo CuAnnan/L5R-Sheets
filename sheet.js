@@ -25,17 +25,25 @@ class Ring extends Trait
 
 class Skill extends Pool
 {
-    constructor(name, trait, value)
+    constructor(name, trait, value, rollBonus, keepBonus)
     {
-        super(trait.value + value, trait.value);
+        super(trait.value + value + rollBonus, trait.value + keepBonus);
         this.name = name;
         this.value = value;
         this.trait = trait.name;
+        this.rollBonus = rollBonus;
+        this.keepBonus = keepBonus;
     }
 
     toJSON()
     {
-        return {name:this.name, value:this.value, trait:this.trait};
+        return {
+            name:this.name,
+            value:this.value,
+            trait:this.trait,
+            rollBonus:this.rollBonus,
+            keepBonus:this.keepBonus
+        };
     }
 }
 
@@ -115,7 +123,7 @@ class Sheet {
                 throw new Error(`No trait ${traitName} could be found`);
             }
 
-            let skill = new Skill(skillJSON.name, trait, skillJSON.value);
+            let skill = new Skill(skillJSON.name, trait, skillJSON.value, skillJSON.rollBonus, skillJSON.keepBonus);
             let skillNameLC = skillJSON.name.toLowerCase();
             if(this.skills[skillNameLC] || this.traits[skillNameLC] || this.rings[skillNameLC])
             {
@@ -247,6 +255,7 @@ class Sheet {
         let shugenjaStuff = {};
         let errPrefix = `The sheet at ${url} could not be read.\n`;
 
+        // parsing traits
         try
         {
             let traitRange = xlsx.utils.decode_range('B1:C12');
@@ -265,15 +274,24 @@ class Sheet {
             throw new Error(`${errPrefix}There was a problem reading the traits range`);
         }
 
+        // parsing page 1 skills
         try
         {
-            let skillRange = xlsx.utils.decode_range('E2:H21');
+            let skillRange = xlsx.utils.decode_range('E2:J21');
             for (let row = skillRange.s.r; row < skillRange.e.r; row++) {
                 let skill_key_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c, r: row})];
                 if (skill_key_cell) {
                     let trait_key_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 2, r: row})];
                     let value_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 3, r: row})];
-                    let skill = {name: skill_key_cell.v, trait: trait_key_cell.v, value: value_cell.v}
+                    let roll_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 4, r:row})];
+                    let keep_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 5, r:row})];
+                    let skill = {
+                        name: skill_key_cell.v,
+                        trait: trait_key_cell.v,
+                        value: value_cell.v,
+                        rollBonus:roll_bonus_cell?roll_bonus_cell.v:0,
+                        keepBonus:keep_bonus_cell?keep_bonus_cell.v:0
+                    };
                     skills[skill.name] = skill;
                 }
             }
@@ -289,9 +307,17 @@ class Sheet {
             let extraSkillCell = extraSkillsSheet[`A${row}`];
             let extraSkillTrait = extraSkillsSheet[`C${row}`];
             let extraSkillValue = extraSkillsSheet[`D${row}`];
+            let extraSkillRollBonus = extraSkillsSheet[`E${row}`];
+            let extraSkillKeepBonus = extraSkillsSheet[`F${row}`];
             while(extraSkillCell && extraSkillTrait && extraSkillValue)
             {
-                let skill = {name:extraSkillCell.v, trait:extraSkillsSheet[`C${row}`].v, value:extraSkillValue.v};
+                let skill = {
+                    name:extraSkillCell.v,
+                    trait:extraSkillsSheet[`C${row}`].v,
+                    value:extraSkillValue.v,
+                    rollBonus:extraSkillRollBonus?extraSkillRollBonus.v:0,
+                    keepBonus:extraSkillKeepBonus?extraSkillKeepBonus.v:0
+                };
                 skills[skill.name] = skill;
                 row++;
                 extraSkillCell = extraSkillsSheet[`A${row}`];
