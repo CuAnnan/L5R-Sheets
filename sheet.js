@@ -289,8 +289,8 @@ class Sheet {
                         name: skill_key_cell.v,
                         trait: trait_key_cell.v,
                         value: value_cell.v,
-                        rollBonus:roll_bonus_cell?roll_bonus_cell.v:0,
-                        keepBonus:keep_bonus_cell?keep_bonus_cell.v:0
+                        rollBonus:roll_bonus_cell?parseInt(roll_bonus_cell.v):0,
+                        keepBonus:keep_bonus_cell?parseInt(keep_bonus_cell.v):0
                     };
                     skills[skill.name] = skill;
                 }
@@ -315,8 +315,8 @@ class Sheet {
                     name:extraSkillCell.v,
                     trait:extraSkillsSheet[`C${row}`].v,
                     value:extraSkillValue.v,
-                    rollBonus:extraSkillRollBonus?extraSkillRollBonus.v:0,
-                    keepBonus:extraSkillKeepBonus?extraSkillKeepBonus.v:0
+                    rollBonus:extraSkillRollBonus?parseInt(extraSkillRollBonus.v):0,
+                    keepBonus:extraSkillKeepBonus?parseInt(extraSkillKeepBonus.v):0
                 };
                 skills[skill.name] = skill;
                 row++;
