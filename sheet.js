@@ -138,6 +138,27 @@ class Sheet {
     parseShugenjaDetails(shugenjaJSON)
     {
         this.spells = {};
+        this.affinities = {'fire':0,'earth':0,'air':0,'water':0,'void':0};
+        if(shugenjaJSON.affinity)
+        {
+            let affinities = shugenjaJSON.affinity.toLowerCase().split(' ');
+            for (let affinity of affinities)
+            {
+                this.affinities[affinity] += 1;
+            }
+        }
+
+
+        this.deficiencies = {'fire':0,'earth':0,'air':0,'water':0,'void':0};
+        if(shugenjaJSON.deficiency)
+        {
+            let deficiencies = shugenjaJSON.deficiency.toLowerCase().split(' ');
+            for (let deficiency of deficiencies)
+            {
+                this.deficiencies[deficiency] += 1;
+            }
+        }
+
         this.affinity = shugenjaJSON.affinity;
         this.deficiency = shugenjaJSON.deficiency? shugenjaJSON.deficiency:null;
 
@@ -146,17 +167,20 @@ class Sheet {
 
         for(let spellJSON of shugenjaJSON.spells)
         {
+            let lcRingName = spellJSON.ring.toLowerCase();
             // constructor(name, ring, level, rank, roll, keep)
-            let ring = this.rings[spellJSON.ring.toLowerCase()];
+            let ring = this.rings[lcRingName];
+
             if(!ring)
             {
                 throw new Error(`No ring ${spellJSON.ring} can be found`);
             }
+
             let spell = new Spell(
                 spellJSON.name,
                 ring,
                 spellJSON.level,
-                ring.value + this.rank + spellCraftBonus + (ring.name === this.affinity ? 1 : 0) + (ring.name === this.deficiency ? -1 : 0) + spellJSON.rollBonus,
+                ring.value + this.rank + spellCraftBonus + this.affinities[lcRingName] - this.deficiencies[lcRingName] + spellJSON.rollBonus,
                 ring.value + spellJSON.keepBonus,
                 spellJSON.rollBonus,
                 spellJSON.keepBonus
@@ -217,6 +241,7 @@ class Sheet {
             this.affinity = shugenjaJSON.affinity;
             this.deficiency = shugenjaJSON.deficiency? shugenjaJSON.deficiency:null;
              */
+
             json.shugenja = {
                 affinity:this.affinity
             };

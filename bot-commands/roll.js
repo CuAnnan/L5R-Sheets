@@ -1,5 +1,6 @@
 import {SlashCommandBuilder} from 'discord.js';
 import rollParser from '../RollParser.js';
+import logger from '../logger.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -29,9 +30,10 @@ export default {
             return;
         }
         rollParser(args, interaction.guildId, interaction.user.id).then((response)=>{
-            interaction.reply(response);
+            interaction.reply({content:response, ephemeral:true});
         }).catch((e)=>{
-            interaction.reply({content:e.message, ephemeral:true});
+            logger.warn(e);
+            interaction.reply({content:e, ephemeral:true});
         });
 
     },
