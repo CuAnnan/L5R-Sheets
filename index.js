@@ -2,6 +2,7 @@
 import Sheet from './sheet.js';
 // import SheetCache from './SheetCache.js';
 // import mongoClient from "./db.js";
+import hash from 'object-hash';
 
 
 
@@ -20,11 +21,13 @@ let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmevaQAKU6XyG-za5-6E
 
 
 
-let sheet = await Sheet.fromGoogleSheetsURL(url).catch((e)=>{
+let sheet1 = await Sheet.fromGoogleSheetsURL(url).catch((e)=>{
     console.log(e);
 });
-console.log('done');
-console.log(sheet.toJSON());
+let sheet2 = new Sheet(sheet1.toJSON());
+
+console.log(hash(sheet1.toJSON()));
+console.log(hash(sheet2.toJSON()));
 
 //
 // let faw = new FaW();
