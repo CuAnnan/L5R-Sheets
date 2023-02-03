@@ -131,7 +131,7 @@ async function rollParser(stringToParse, guildId, userId)
 
     if(roll)
     {
-        response = `You rolled **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
+        response = `You rolled **${stringToParse}** resolving to **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
         if(roll.tn)
         {
             response += `, which was a ${roll.success}`;
