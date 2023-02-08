@@ -27,7 +27,7 @@ async function processSheetBasedRoll(toRoll, guildId, userId)
     let pool = sheet.getPool(toRoll);
     if(!pool)
     {
-        throw new Error(`Nothing called ${toRoll} could be found on your sheet`);
+        throw new Error(`Nothing called '${toRoll}' could be found on your sheet`);
     }
     return pool;
 }
@@ -82,10 +82,12 @@ function processArguments(parts)
 
 
 
-async function rollParser(stringToParse, guildId, userId)
+async function rollParser(rawString, guildId, userId)
 {
+    let [stringToParse, comment] = rawString.split('#');
+
     let parts = stringToParse.split(' ');
-    let toRoll = parts.shift();
+    let toRoll = parts.shift().trim();
     let pool;
     let roll;
 
@@ -110,6 +112,7 @@ async function rollParser(stringToParse, guildId, userId)
                 toRoll += ' ' + parts.shift();
             }
         }
+        toRoll = toRoll.trim();
         try
         {
             pool = await processSheetBasedRoll(toRoll.toLowerCase(), guildId, userId);
@@ -131,11 +134,16 @@ async function rollParser(stringToParse, guildId, userId)
 
     if(roll)
     {
-        response = `You rolled **${stringToParse}** resolving to **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
+        response = `You rolled **${stringToParse.trim()}** resolving to **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
         if(roll.tn)
         {
             response += `, which was a ${roll.success}`;
         }
+    }
+
+    if(comment)
+    {
+        response += `\n***Comment:*** ${comment.trim()}`;
     }
 
     if(extraResponseParts)

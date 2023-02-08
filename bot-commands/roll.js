@@ -18,8 +18,8 @@ export default {
         {
             interaction.reply(
                 '***Roll Syntax***\n\n' +
-                '/roll <nKm or a ring, trait, skill, or spell>[ !no10s|!nr][ !rv<reroll value>][ !e][ +nKm][ +<amount>][ vs:|tn:<target number>]\n\n' +
-                'Fields in <> are mandatory, fields in [] are optional.\n\n' +
+                '/roll <nKm or a ring, trait, skill, or spell>[ !no10s|!nr][ !rv<reroll value>][ !e][ +nKm][ +<amount>][ vs:|tn:<target number>][# any comment you like]\n\n' +
+                'Fields in <> are mandatory, fields in [] are optional, everything after the # is treated as a comment shown after the roll. Everything after any subsequent # is ignored.\n\n' +
                 '**Optional fields:**\n' +
                 '**!no10s *or* !nr**: do not reroll 10s.\n' +
                 '**\!rv<reroll value>**: Reroll on <reroll value> instead of 10.\n' +
