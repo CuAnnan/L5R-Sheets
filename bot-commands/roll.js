@@ -14,7 +14,6 @@ export default {
     ,
     async execute(interaction) {
         const args = interaction.options.getString('whattoroll').trim();
-        console.log('Received command')
         if(args.toLowerCase()==='help')
         {
             interaction.reply(
@@ -35,6 +34,8 @@ export default {
         }).catch((e)=>{
             logger.warn(e);
             interaction.reply({content:e, ephemeral:true});
+        }).finally(()=>{
+            logger.info('Finally block executing');
         });
 
     },
