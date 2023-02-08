@@ -14,6 +14,7 @@ export default {
     ,
     async execute(interaction) {
         const args = interaction.options.getString('whattoroll').trim();
+        console.log('Received command')
         if(args.toLowerCase()==='help')
         {
             interaction.reply(
