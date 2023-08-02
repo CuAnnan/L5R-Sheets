@@ -2,6 +2,7 @@
 import xlsx from 'xlsx';
 import fetch from 'node-fetch';
 import Pool from './Pool.js';
+import roll from "./bot-commands/roll.js";
 
 class Trait extends Pool
 {
@@ -72,6 +73,12 @@ class Spell extends Pool
 }
 
 class Sheet {
+
+    stance;
+    clan;
+    family;
+    tempers;
+
 
     /**
      * A function to parse the json provided to the constructor into the stored values.
@@ -196,6 +203,9 @@ class Sheet {
         this.sheetURL = sheetURL?sheetURL:json.url;
         this._rollables = {};
         this.rank = json.rank;
+        this.clan = json.clan;
+        this.house = json.house;
+        this.tempers = json.tempers;
 
         this.parseTraits(json.traits, json.void.value);
         this.parseSkills(json.skills);
@@ -223,7 +233,16 @@ class Sheet {
 
     toJSON()
     {
-        let json = {rank:this.rank, url:this.sheetURL, traits:{}, void:this.rings.void.toJSON(), skills:{}};
+        let json = {
+            clan:this.clan,
+            house:this.house,
+            rank:this.rank,
+            tempers:this.tempers,
+            url:this.sheetURL,
+            traits:{},
+            void:this.rings.void.toJSON(),
+            skills:{}
+        };
 
         for(let trait of Object.values(this.traits))
         {
@@ -269,12 +288,15 @@ class Sheet {
             url = url.replace(/pubhtml$/, 'pub?output=xlsx');
         }
 
+
         let response = await fetch(url);
         let buffer = await response.arrayBuffer();
         let document = xlsx.read(buffer);
         let baseSheet = document.Sheets[document.SheetNames[0]];
-        let spellSheet = document.Sheets[document.SheetNames[1]];
-        let extraSkillsSheet = document.Sheets[document.SheetNames[2]];
+        let sumaiSheet = document.Sheets[document.SheetNames[1]];
+        let spellSheet = document.Sheets[document.SheetNames[2]];
+        let extraSkillsSheet = document.Sheets[document.SheetNames[3]];
+
         let traits = {};
         let skills = {};
         let shugenjaStuff = {};
@@ -419,6 +441,23 @@ class Sheet {
 
         return new Sheet(
             {
+                clan:baseSheet['N13'].v,
+                house:baseSheet['N14'].v,
+                tempers:
+                    {
+                        glory:{
+                            rank:parseInt(baseSheet['N16'].v),
+                            ticks:parseInt(baseSheet['O16'].v)
+                        },
+                        honor:{
+                            rank:parseInt(baseSheet['N17'].v),
+                            ticks:parseInt(baseSheet['O17'].v)
+                        },
+                        status:{
+                            rank:parseInt(baseSheet['N18'].v),
+                            ticks:parseInt(baseSheet['O18'].v)
+                        }
+                    },
                 void: voidScore,
                 traits: traits,
                 skills: skills,
