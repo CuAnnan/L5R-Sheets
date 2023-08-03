@@ -299,7 +299,7 @@ class Sheet {
 
         let traits = {};
         let skills = {};
-        let shugenjaStuff = {};
+        let shugenjaStuff = null;
         let errPrefix = `The sheet at ${url} could not be read.\n`;
 
         // parsing traits
@@ -381,6 +381,8 @@ class Sheet {
         {
             let shugenjaAffinityRingCell = spellSheet['C1'];
             if (shugenjaAffinityRingCell) {
+                shugenjaStuff = {};
+
                 shugenjaStuff.spells = [];
                 shugenjaStuff.affinity = shugenjaAffinityRingCell.v;
                 let deficiencyRingCell = spellSheet['E1'];
@@ -439,31 +441,33 @@ class Sheet {
             throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore?'Void':'Rank'} score`);
         }
 
-        return new Sheet(
-            {
-                clan:baseSheet['N13'].v,
-                house:baseSheet['N14'].v,
-                tempers:
-                    {
-                        glory:{
-                            rank:parseInt(baseSheet['N16'].v),
-                            ticks:parseInt(baseSheet['O16'].v)
-                        },
-                        honor:{
-                            rank:parseInt(baseSheet['N17'].v),
-                            ticks:parseInt(baseSheet['O17'].v)
-                        },
-                        status:{
-                            rank:parseInt(baseSheet['N18'].v),
-                            ticks:parseInt(baseSheet['O18'].v)
-                        }
+        let data = {
+            clan:baseSheet['N13'].v,
+            house:baseSheet['N14'].v,
+            tempers:
+                {
+                    glory:{
+                        rank:parseInt(baseSheet['N16'].v),
+                        ticks:parseInt(baseSheet['O16'].v)
                     },
-                void: voidScore,
-                traits: traits,
-                skills: skills,
-                rank: rankScore,
-                shugenja: shugenjaStuff
-            },
+                    honor:{
+                        rank:parseInt(baseSheet['N17'].v),
+                        ticks:parseInt(baseSheet['O17'].v)
+                    },
+                    status:{
+                        rank:parseInt(baseSheet['N18'].v),
+                        ticks:parseInt(baseSheet['O18'].v)
+                    }
+                },
+            void: voidScore,
+            traits: traits,
+            skills: skills,
+            rank: rankScore,
+            shugenja: shugenjaStuff
+        };
+
+        return new Sheet(
+            data,
             url
         );
     }
