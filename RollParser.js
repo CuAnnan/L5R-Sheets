@@ -91,7 +91,7 @@ async function rollParser(rawString, guildId, userId)
     let pool;
     let roll;
 
-    let basicRoll = toRoll.match(/^(\d+)k(\d+)/)
+    let basicRoll = toRoll.match(/^(\d+)k(\d+)/i);
     if(basicRoll)
     {
         pool = new Pool(parseInt(basicRoll[1]), parseInt(basicRoll[2]));
