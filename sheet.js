@@ -330,8 +330,8 @@ class Sheet {
                 if (skill_key_cell) {
                     let trait_key_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 2, r: row})];
                     let value_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 3, r: row})];
-                    let roll_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 4, r:row})];
-                    let keep_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 5, r:row})];
+                    let roll_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 5, r:row})];
+                    let keep_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 6, r:row})];
                     let skill = {
                         name: skill_key_cell.v,
                         trait: trait_key_cell.v,
