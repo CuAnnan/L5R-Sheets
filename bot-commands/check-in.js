@@ -1,4 +1,5 @@
 import {SlashCommandBuilder} from 'discord.js';
+import CheckInHandler from '../CheckInHandler.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -7,10 +8,7 @@ export default {
     ,
     async execute(interaction) {
         const target = interaction.member;
-        console.log('This should be logging');
-        const checkedInRole = target.guild.roles.cache.find(r=>r.name==='checked in');
-        console.log(checkedInRole);
-        await target.roles.add(checkedInRole);
+        await CheckInHandler.checkTargetIn(target);
         interaction.reply('You have been checked in.');
     },
 };
