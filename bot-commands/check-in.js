@@ -7,6 +7,7 @@ export default {
     ,
     async execute(interaction) {
         const target = interaction.member;
+        console.log('This should be logging');
         const checkedInRole = target.guild.roles.cache.find(r=>r.name==='checked in');
         console.log(checkedInRole);
         await target.roles.add(checkedInRole);
