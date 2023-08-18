@@ -12,6 +12,11 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const commandsPath = path.join(__dirname, 'bot-commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
+async function boot()
+{
+
+}
+
 client.commands = new Collection();
 
 for (const file of commandFiles) {

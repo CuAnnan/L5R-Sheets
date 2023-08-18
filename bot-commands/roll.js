@@ -32,6 +32,7 @@ export default {
         rollParser(args, interaction.guildId, interaction.user.id).then((response)=>{
             interaction.reply({content:response});
         }).catch((e)=>{
+            logger.warn(interaction);
             logger.warn(e);
             interaction.reply({content:e, ephemeral:true});
         }).finally(()=>{
