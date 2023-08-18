@@ -1,6 +1,6 @@
 class CheckInHandler
 {
-    async static checkTargetIn(target)
+    static async checkTargetIn(target)
     {
         const checkedInRole = target.guild.roles.cache.find(r=>r.name==='checked in');
 
