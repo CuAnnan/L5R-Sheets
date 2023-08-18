@@ -106,7 +106,7 @@ async function rollParser(rawString, guildId, userId)
         let searching = true;
         while(searching)
         {
-            if(!parts.length || parts[0].startsWith('!') || parts[0].startsWith('+') || parts[0].startsWith('-'))
+            if(!parts.length || parts[0].startsWith('!') || parts[0].startsWith('+') || parts[0].startsWith('-') || parts[0].startsWith('tn:') || parts[0].startsWith('vs:'))
             {
                 searching = false;
             }
