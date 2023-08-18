@@ -34,7 +34,7 @@ export default {
         }).catch((e)=>{
             logger.warn(interaction.options.getString('whattoroll').trim());
             logger.warn(e);
-            interaction.reply({content:e, ephemeral:true});
+            interaction.reply({content:"An error occurred processing this command, an error has been logged and Wing will look at it ASAP", ephemeral:true});
         }).finally(()=>{
             logger.info('Finally block executing');
         });
