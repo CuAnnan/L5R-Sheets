@@ -8,7 +8,8 @@ export default {
     ,
     async execute(interaction) {
         const target = interaction.member;
-        await CheckInHandler.checkTargetIn(target);
-        interaction.reply('You have been checked in.');
+        const checkedInRole = target.guild.roles.cache.find(r=>r.name==='checked in');
+        await target.roles.add(checkedInRole);
+        interaction.reply({content:'You have been checked in.', ephemeral:true});
     },
 };

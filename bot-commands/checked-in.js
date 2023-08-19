@@ -7,11 +7,26 @@ export default {
     ,
     async execute(interaction) {
         const checkedInRole = interaction.member.guild.roles.cache.find(r=>r.name==='checked in');
-        const members = checkedInRole.members.map(m=>m.user.tag);
-        const loggedInEmbed = new EmbedBuilder()
-            .setColor(0x0099ff)
-            .setTitle("Checked in players")
-            .addFields({name:"Players", value:members.join(', ')},{name:"Total logged in players", value:members.length});
-        interaction.reply(loggedInEmbed);
+        console.log(interaction.member);
+        const members = checkedInRole.members.map(m=>m.displayName);
+        if(members.length)
+        {
+            let checkedInMembers = members.join(', ');
+            const loggedInEmbed = new EmbedBuilder();
+            loggedInEmbed.setColor(0x0099ff);
+            loggedInEmbed.setTitle("Checked in players");
+            loggedInEmbed.addFields(
+                {name: "Players", value: checkedInMembers}
+            );
+            loggedInEmbed.addFields({
+                name: "Total checked in players",
+                value: ""+members.length
+            });
+            interaction.reply({embeds:[loggedInEmbed], ephemeral:true});
+        }
+        else
+        {
+            interaction.reply({content:'No members checked in', ephemeral:true});
+        }
     },
 };

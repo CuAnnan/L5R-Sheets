@@ -9,6 +9,6 @@ export default {
         const target = interaction.member;
         const checkedInRole = target.guild.roles.cache.find(r=>r.name==='checked in');
         await target.roles.remove(checkedInRole);
-        interaction.reply('You have been checked out.');
+        interaction.reply({content:'You have been checked out.', ephemeral:true});
     },
 };
