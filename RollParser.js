@@ -89,7 +89,6 @@ async function rollParser(rawString, guildId, userId)
     comment = comment?comment.trim():null;
 
     let parts = stringToParse.split(' ');
-    console.log(parts);
     let toRoll = parts.shift().trim();
     let pool;
     let roll;

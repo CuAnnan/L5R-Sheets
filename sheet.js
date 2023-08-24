@@ -434,7 +434,7 @@ class Sheet {
         try
         {
             voidScore = {value: baseSheet['A14'].v};
-            rankScore = parseInt(baseSheet['N4'].v);
+            rankScore = parseInt(baseSheet['O4'].v);
         }
         catch(e)
         {
