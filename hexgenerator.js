@@ -40,9 +40,10 @@ function generateHexes()
                     }
                 }
             }
+            const imgName = hex.name.replace(' ','-');
             hexImage
                 .pack()
-                .pipe(fs.createWriteStream(`./imgs/${hex.name}.png`))
+                .pipe(fs.createWriteStream(`./imgs/${imgName}.png`))
                 .on("finish", function(){
                     console.log(`Written ${hex.name} png file`);
                 });

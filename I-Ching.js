@@ -5,7 +5,7 @@ const COIN_VALUES = {
     'HHH':{base:'HHT', face:'-o-', plain:'---', value:1}
 };
 COIN_VALUES.TTT.derivesTo = COIN_VALUES.HTT;
-COIN_VALUES.HHH.derivesTo = COIN_VALUES.HTT;
+COIN_VALUES.HHH.derivesTo = COIN_VALUES.HHT;
 COIN_VALUES.yin = COIN_VALUES.HHT;
 COIN_VALUES.yang = COIN_VALUES.HTT;
 
