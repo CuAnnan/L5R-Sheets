@@ -68,14 +68,26 @@ function processArguments(parts)
                 let bonusAmount = part.match(/\+(\d+)/);
                 if(bonusAmount)
                 {
-                    args.bonusToResult = parseInt(bonusAmount[1]);
+                    args.bonusToResult += parseInt(bonusAmount[1]);
                 }
                 else
                 {
-                    extraResponseParts.push(`I do not know how to process ${part}`);
+                    let penaltyAmount = part.match(/-(\d+)/);
+                    if(penaltyAmount)
+                    {
+                        args.bonusToResult -= parseInt(penaltyAmount[1]);
+                    }
+                    else
+                    {
+                        extraResponseParts.push(`I do not know how to process ${part}`);
+                    }
                 }
             }
         }
+    }
+    if(args.bonusToResult)
+    {
+        args.bonusSign = args.bonusToResult > 0?'+':'';
     }
     return [args, extraResponseParts];
 }
@@ -105,7 +117,7 @@ async function rollParser(rawString, guildId, userId)
         let searching = true;
         while(searching)
         {
-            if(!parts.length || parts[0].startsWith('!') || parts[0].startsWith('+') || parts[0].startsWith('-') || parts[0].startsWith('tn:') || parts[0].startsWith('vs:'))
+            if(!parts.length || parts[0].startsWith('!') || parts[0].startsWith('+') || parts[0].startsWith('-') || parts[0].startsWith('tn:') || parts[0].startsWith('vs:') || parts[0].startsWith('-'))
             {
                 searching = false;
             }
@@ -136,7 +148,7 @@ async function rollParser(rawString, guildId, userId)
 
     if(roll)
     {
-        response = `You rolled **${stringToParse.trim()}** resolving to **${roll.toRoll}k${roll.toKeep}${roll.bonus?`+${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
+        response = `You rolled **${stringToParse.trim()}** resolving to **${roll.toRoll}k${roll.toKeep}${roll.bonus?`${args.bonusSign}${roll.bonus}`:''}**${roll.tn?` against a TN of **${roll.tn}**`:''}.\nDice rolled: ${roll.diceRolled}\nFor a total of **${roll.result}**`;
         if(roll.tn)
         {
             response += `, which was a ${roll.success}`;
