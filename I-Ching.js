@@ -6,6 +6,9 @@ const COIN_VALUES = {
 };
 COIN_VALUES.TTT.derivesTo = COIN_VALUES.HTT;
 COIN_VALUES.HHH.derivesTo = COIN_VALUES.HTT;
+COIN_VALUES.yin = COIN_VALUES.HHT;
+COIN_VALUES.yang = COIN_VALUES.HTT;
+
 
 class Trigram
 {
@@ -13,15 +16,16 @@ class Trigram
         'Heaven', 'Lake', 'Flame', 'Thunder', 'Wind', 'Water','Mountain','Earth'
     ];
 
+
     constructor()
     {
         this.lines = [];
-        this.value = 0;
+        this.value = 7;
     }
 
     addLine(line)
     {
-        this.value += line.value?Math.pow(2, 2 - this.lines.length):0;
+        this.value -= line.value?Math.pow(2, this.lines.length):0;
         this.lines.push(line);
         if(this.lines.length === 3)
         {
@@ -32,6 +36,9 @@ class Trigram
 
 class Hexagram
 {
+    static yin = '¦';
+    static yang = '|';
+
     // lower:upper
     static DATA = [
         [
@@ -159,7 +166,6 @@ class Hexagram
 
     generateImage()
     {
-        const image = PImage.make(100,100);
 
     }
 
@@ -176,6 +182,34 @@ class Hexagram
             return derivation;
         }
         return null;
+    }
+
+    toString()
+    {
+        let string = '';
+        for(let line of this.lines)
+        {
+            string += line.value?Hexagram.yang:Hexagram.yin;
+        }
+        return string;
+    }
+
+    static fromString(hexString)
+    {
+        const hex = new Hexagram();
+        const chars = hexString.split('');
+        for(const char of chars)
+        {
+            if(char === Hexagram.yin)
+            {
+                hex.addLine(COIN_VALUES.yin);
+            }
+            if(char === Hexagram.yang)
+            {
+                hex.addLine(COIN_VALUES.yang);
+            }
+        }
+        return hex;
     }
 }
 
@@ -196,4 +230,5 @@ class IChing
         return hex;
     }
 }
-export default IChing;
+export {IChing as IChing};
+export {Hexagram as Hexagram};
