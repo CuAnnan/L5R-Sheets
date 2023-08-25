@@ -161,12 +161,23 @@ class Hexagram
             {
                 this.derivation = this.getDerivation();
             }
+            this.nuclear = this.getNuclear();
         }
     }
 
-    generateImage()
+    getNuclear()
     {
+        const nuclear = new Hexagram();
 
+        for(let i = 2; i < 5; i++)
+        {
+            nuclear.addLine(this.lines[i]);
+        }
+        for(let i = 3; i < 6; i++)
+        {
+            nuclear.addLine(this.lines[i])
+        }
+        return nuclear;
     }
 
     getDerivation()

@@ -7,7 +7,6 @@ export default {
     ,
     async execute(interaction) {
         const checkedInRole = interaction.member.guild.roles.cache.find(r=>r.name==='checked in');
-        console.log(interaction.member);
         const members = checkedInRole.members.map(m=>m.displayName);
         if(members.length)
         {
