@@ -175,12 +175,16 @@ class Sheet {
         for(let spellJSON of shugenjaJSON.spells)
         {
             let lcRingName = spellJSON.ring.toLowerCase();
+            if(!lcRingName)
+            {
+                throw new Error(`Spell "${spellJSON.name} is missing its ring"`);
+            }
             // constructor(name, ring, level, rank, roll, keep)
             let ring = this.rings[lcRingName];
 
             if(!ring)
             {
-                throw new Error(`No ring ${spellJSON.ring} can be found`);
+                throw new Error(`No ring "${spellJSON.ring}" can be found for spell ${spellJSON.name}`);
             }
 
             let spell = new Spell(
