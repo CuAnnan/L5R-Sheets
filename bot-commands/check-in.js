@@ -1,5 +1,4 @@
 import {SlashCommandBuilder} from 'discord.js';
-import CheckInHandler from '../CheckInHandler.js';
 
 export default {
     data: new SlashCommandBuilder()

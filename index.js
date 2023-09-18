@@ -24,10 +24,13 @@ let url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuLeQlNQeAnwTcveeqZg
 let sheet1 = await Sheet.fromGoogleSheetsURL(url).catch((e)=>{
     console.log(e);
 });
-let sheet2 = new Sheet(sheet1.toJSON());
 
-console.log(hash(sheet1.toJSON()));
-console.log(hash(sheet2.toJSON()));
+
+console.log(JSON.stringify(sheet1.createPageStructure()));
+
+
+// let sheet2 = new Sheet(sheet1.toJSON());
+// console.log(hash(sheet2.toJSON()));
 
 //
 // let faw = new FaW();

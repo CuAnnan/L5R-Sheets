@@ -17,6 +17,7 @@ export default {
         if(!hasFortuneRole)
         {
             interaction.reply({content:'You do not have sufficient permissions to run this command', ephemeral:true});
+            return;
         }
 
 
