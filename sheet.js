@@ -146,23 +146,21 @@ class Sheet {
     {
         this.spells = {};
         this.affinities = {'fire':0,'earth':0,'air':0,'water':0,'void':0};
-        if(shugenjaJSON.affinity)
+        if(shugenjaJSON.affinities)
         {
-            let affinities = shugenjaJSON.affinity.toLowerCase().split(' ');
-            for (let affinity of affinities)
+            for (let affinity of shugenjaJSON.affinities)
             {
-                this.affinities[affinity] += 1;
+                this.affinities[affinity.toLowerCase()] += 1;
             }
         }
 
 
         this.deficiencies = {'fire':0,'earth':0,'air':0,'water':0,'void':0};
-        if(shugenjaJSON.deficiency)
+        if(shugenjaJSON.deficiencies)
         {
-            let deficiencies = shugenjaJSON.deficiency.toLowerCase().split(' ');
-            for (let deficiency of deficiencies)
+            for (let deficiency of shugenjaJSON.deficiencies)
             {
-                this.deficiencies[deficiency] += 1;
+                this.deficiencies[deficiency.toLowerCase()] += 1;
             }
         }
 
@@ -210,6 +208,7 @@ class Sheet {
         this.clan = json.clan;
         this.house = json.house;
         this.tempers = json.tempers;
+        this.pageStructure = null;
 
         this.parseTraits(json.traits, json.void.value);
         this.parseSkills(json.skills);
@@ -233,6 +232,79 @@ class Sheet {
         {
             return this._rollables[name];
         }
+    }
+
+    createPageStructure()
+    {
+        if(this.pageStructure)
+        {
+            return this.pageStructure;
+        }
+        const pageStructure = [];
+
+        const traitsRingsStructure = [
+            {ring:"air", traits:['reflexes', 'awareness']},
+            {ring:"earth", traits:['stamina', 'willpower']},
+            {ring:"fire", traits:['agility', 'intelligence']},
+            {ring:"water", traits:['strength', 'perception']},
+            {ring:"void", traits:[]}
+        ];
+
+        const page1 = {rings:[], traits:[],skills:[]}
+
+        for(const ringMap of traitsRingsStructure)
+        {
+            const ring=ringMap.ring;
+            const traits = ringMap.traits;
+            const ringEntry ={name:this.rings[ring].name, value:this.rings[ring].value, traits:[]}
+            for(let trait of traits)
+            {
+                page1.traits.push({name:this.traits[trait].name, value:this.traits[trait].value});
+            }
+            page1.rings.push(ringEntry);
+        }
+
+        const skillsLength = Math.min(Object.keys(this.skills).length, 13);
+        const skillsArray = Object.values(this.skills);
+        for(let i = 0; i < skillsLength; i++)
+        {
+            page1.skills.push({name:skillsArray[i].name, value:skillsArray[i].value});
+        }
+
+        const page1Length = Math.max(page1.rings.length, page1.skills.length);
+        const pageRows = []
+        const pageRow = [];
+        const paddings = [];
+        pageRows.push(pageRow);
+        for(let i = 0; i < page1Length; i++)
+        {
+
+            if(i < page1.rings.length * 2)
+            {
+                const ring = page1.rings[Math.floor(i/2)];
+                pageRow.push(i%2?`${ring.name}:`:`${ring.value}`);
+            }
+            else
+            {
+                pageRow.push('');
+            }
+
+            if(i < page1.traits.length)
+            {
+                pageRow.push(page1.traits.name);
+                pageRow.push(page1.traits.value);
+            }
+
+            pageRows.push(pageRow.join('\t'));
+        }
+
+        this.pageStructure = pageRows;
+        return this.pageStructure;
+    }
+
+    getPageAsString(pageNumber=0)
+    {
+
     }
 
     toJSON()
@@ -388,11 +460,11 @@ class Sheet {
                 shugenjaStuff = {};
 
                 shugenjaStuff.spells = [];
-                shugenjaStuff.affinity = shugenjaAffinityRingCell.v;
+                shugenjaStuff.affinities = shugenjaAffinityRingCell.v.split(' ');
                 let deficiencyRingCell = spellSheet['E1'];
                 // Phoenix Shugenja don't have deficiencies.
                 if (deficiencyRingCell) {
-                    shugenjaStuff.deficiency = deficiencyRingCell.v;
+                    shugenjaStuff.deficiencies = deficiencyRingCell.v.split(' ');
                 }
 
                 let spellRange = xlsx.utils.decode_range('B3:H3');
