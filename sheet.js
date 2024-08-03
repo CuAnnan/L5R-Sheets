@@ -154,7 +154,6 @@ class Sheet {
             }
         }
 
-
         this.deficiencies = {'fire':0,'earth':0,'air':0,'water':0,'void':0};
         if(shugenjaJSON.deficiencies)
         {
@@ -338,7 +337,7 @@ class Sheet {
              */
 
             json.shugenja = {
-                affinity:this.affinity
+                affinities:this.affinities
             };
 
             if(this.deficiency)
@@ -359,15 +358,189 @@ class Sheet {
     static async fromGoogleSheetsURL(url)
     {
         //https://docs.google.com/spreadsheets/d/e/2PACX-1vQmevaQAKU6XyG-za5-6E7jSWKnTyAWD8gRP3cwxqSGEpUjtIZE_K2pa9Qxq7RDGVd_qyoajVymKPOb/pubhtml
+        if(url.includes("/edit"))
+        {
+            throw new Error("It looks like you're trying to import from the edit URL not the export URL.");
+        }
+
         if(url.endsWith('pubhtml'))
         {
             url = url.replace(/pubhtml$/, 'pub?output=xlsx');
         }
 
 
+
+
         let response = await fetch(url);
         let buffer = await response.arrayBuffer();
         let document = xlsx.read(buffer);
+
+        let sheet1 = document.Sheets[document.SheetNames[0]];
+        let versionTitleCell = sheet1['A19'];
+
+
+        if(versionTitleCell.v === "Version")
+        {
+            let versionCell = sheet1["B19"];
+            return new Sheet(
+                this.parseFromNewDocument(document, url),
+                url
+            );
+        }
+        else
+        {
+            return new Sheet(
+                this.parseFromOldDocument(document, url),
+                url
+            );
+        }
+    }
+
+    static parseFromNewDocument(document, url)
+    {
+        let baseSheet = document.Sheets[document.SheetNames[1]];
+        let spellSheet = document.Sheets[document.SheetNames[6]];
+
+        let traits = {};
+        let shugenjaStuff = null;
+        let errPrefix = `The sheet at ${url} could not be read.\n`;
+
+        // parsing traits
+        try {
+            let traitRange = xlsx.utils.decode_range('B2:C13');
+            for (let row = traitRange.s.r; row < traitRange.e.r; row++) {
+                let key_cell_address = xlsx.utils.encode_cell({c: traitRange.s.c, r: row});
+                let key_cell = baseSheet[key_cell_address];
+                if (key_cell) {
+                    let value_cell_address = xlsx.utils.encode_cell({c: traitRange.e.c, r: row});
+                    let value_cell = baseSheet[value_cell_address];
+                    traits[key_cell.v] = {name: key_cell.v, value: parseInt(value_cell.v)};
+                }
+            }
+        } catch (e) {
+            throw new Error(`${errPrefix}There was a problem reading the traits range`);
+        }
+
+        let voidScore = null;
+        let rankScore = null;
+
+        try {
+            let shugenjaAffinityRingCell = spellSheet['D2'];
+            if (shugenjaAffinityRingCell) {
+                shugenjaStuff = {};
+
+                shugenjaStuff.spells = [];
+                shugenjaStuff.affinities = shugenjaAffinityRingCell.v.split(' ');
+                let deficiencyRingCell = spellSheet['F2'];
+                // Phoenix Shugenja don't have deficiencies.
+                if (deficiencyRingCell) {
+                    shugenjaStuff.deficiencies = deficiencyRingCell.v.split(' ');
+                }
+
+                let spellRange = xlsx.utils.decode_range('C4:I4');
+                let address = {c: spellRange.s.c, r: spellRange.s.r}
+                let currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
+
+                while (currentSpellNameCell) {
+                    let rollBonusCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 3, r: address.r})];
+                    let keepBonusCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 4, r: address.r})];
+                    let ringCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 1, r: address.r})];
+                    let levelCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 2, r: address.r})];
+
+                    if (currentSpellNameCell && ringCell && levelCell) {
+                        shugenjaStuff.spells.push({
+                            name: currentSpellNameCell.v,
+                            ring: ringCell.v,
+                            level: parseInt(levelCell.v),
+                            rollBonus: rollBonusCell ? parseInt(rollBonusCell.v) : 0,
+                            keepBonus: keepBonusCell ? parseInt(keepBonusCell.v) : 0,
+                        });
+                        spellRange.s.r++;
+                        spellRange.e.r++;
+                        address = {c: spellRange.s.c, r: spellRange.s.r}
+                        currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
+                    } else {
+                        currentSpellNameCell = null;
+                    }
+                }
+            }
+        } catch (e) {
+            throw new Error(`${errPrefix}There was a problem loading your Shugenja sheet`);
+        }
+
+
+        try {
+            voidScore = {value: baseSheet['A15'].v};
+            rankScore = parseInt(baseSheet['B20'].v);
+        } catch (e) {
+            throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore ? 'Void' : 'Rank'} score`);
+        }
+
+        let data = {
+            clan: baseSheet['S3']?baseSheet['S3'].v:'',
+            house: baseSheet['S4']?baseSheet['S4'].v:'',
+            tempers:
+                {
+                    glory: {
+                        rank: parseInt(baseSheet['S6'].v),
+                        ticks: parseInt(baseSheet['T6'].v)
+                    },
+                    honor: {
+                        rank: parseInt(baseSheet['S7'].v),
+                        ticks: parseInt(baseSheet['T7'].v)
+                    },
+                    status: {
+                        rank: parseInt(baseSheet['S8'].v),
+                        ticks: parseInt(baseSheet['T8'].v)
+                    }
+                },
+            void: voidScore,
+            traits: traits,
+            skills: this.parseNewSkills(baseSheet),
+            rank: rankScore,
+            shugenja: shugenjaStuff
+        }
+        return data;
+    }
+
+    static parseNewSkills(baseSheet)
+    {
+        let skills = {};
+        try {
+            let row = 12;
+            let nameCell    = baseSheet[`O${row}`];
+            let subNameCell = baseSheet[`P${row}`];
+            let traitCell   = baseSheet[`T${row}`];
+            let scoreCell   = baseSheet[`U${row}`];
+            let rollBonus   = baseSheet[`V${row}`];
+            let keepBonus   = baseSheet[`W${row}`];
+
+            while (nameCell && traitCell && scoreCell) {
+                let skillName = nameCell.v;
+                if(subNameCell && subNameCell.v)
+                {
+                    skillName+= `: ${subNameCell.v}`;
+                }
+                let skill = {
+                    name: skillName,
+                    trait: traitCell.v,
+                    value: scoreCell.v,
+                    rollBonus: rollBonus ? parseInt(rollBonus.v) : 0,
+                    keepBonus: keepBonus ? parseInt(keepBonus.v) : 0
+                };
+                skills[skill.name] = skill;
+                row++;
+                nameCell    = baseSheet[`O${row}`];
+                traitCell   = baseSheet[`T${row}`];
+                scoreCell   = baseSheet[`U${row}`];
+            }
+        } catch (e) {
+            throw new Error(`There was a problem reading your skills range`);
+        }
+        return skills;
+    }
+
+    static parseFromOldDocument(document, url) {
         let baseSheet = document.Sheets[document.SheetNames[0]];
         let sumaiSheet = document.Sheets[document.SheetNames[1]];
         let spellSheet = document.Sheets[document.SheetNames[2]];
@@ -379,8 +552,7 @@ class Sheet {
         let errPrefix = `The sheet at ${url} could not be read.\n`;
 
         // parsing traits
-        try
-        {
+        try {
             let traitRange = xlsx.utils.decode_range('B1:C12');
             for (let row = traitRange.s.r; row < traitRange.e.r; row++) {
                 let key_cell_address = xlsx.utils.encode_cell({c: traitRange.s.c, r: row});
@@ -391,55 +563,48 @@ class Sheet {
                     traits[key_cell.v] = {name: key_cell.v, value: parseInt(value_cell.v)};
                 }
             }
-        }
-        catch(e)
-        {
+        } catch (e) {
             throw new Error(`${errPrefix}There was a problem reading the traits range`);
         }
 
         // parsing page 1 skills
-        try
-        {
+        try {
             let skillRange = xlsx.utils.decode_range('E2:J21');
             for (let row = skillRange.s.r; row < skillRange.e.r; row++) {
                 let skill_key_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c, r: row})];
                 if (skill_key_cell) {
                     let trait_key_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 2, r: row})];
                     let value_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 3, r: row})];
-                    let roll_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 5, r:row})];
-                    let keep_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 6, r:row})];
+                    let roll_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 5, r: row})];
+                    let keep_bonus_cell = baseSheet[xlsx.utils.encode_cell({c: skillRange.s.c + 6, r: row})];
                     let skill = {
                         name: skill_key_cell.v,
                         trait: trait_key_cell.v,
                         value: value_cell.v,
-                        rollBonus:roll_bonus_cell?parseInt(roll_bonus_cell.v):0,
-                        keepBonus:keep_bonus_cell?parseInt(keep_bonus_cell.v):0
+                        rollBonus: roll_bonus_cell ? parseInt(roll_bonus_cell.v) : 0,
+                        keepBonus: keep_bonus_cell ? parseInt(keep_bonus_cell.v) : 0
                     };
                     skills[skill.name] = skill;
                 }
             }
-        }
-        catch(e)
-        {
+        } catch (e) {
             throw new Error(`${errPrefix}There was a problem reading the sheet 1 skills range`);
         }
 
-        try
-        {
+        try {
             let row = 2;
             let extraSkillCell = extraSkillsSheet[`A${row}`];
             let extraSkillTrait = extraSkillsSheet[`C${row}`];
             let extraSkillValue = extraSkillsSheet[`D${row}`];
             let extraSkillRollBonus = extraSkillsSheet[`E${row}`];
             let extraSkillKeepBonus = extraSkillsSheet[`F${row}`];
-            while(extraSkillCell && extraSkillTrait && extraSkillValue)
-            {
+            while (extraSkillCell && extraSkillTrait && extraSkillValue) {
                 let skill = {
-                    name:extraSkillCell.v,
-                    trait:extraSkillsSheet[`C${row}`].v,
-                    value:extraSkillValue.v,
-                    rollBonus:extraSkillRollBonus?parseInt(extraSkillRollBonus.v):0,
-                    keepBonus:extraSkillKeepBonus?parseInt(extraSkillKeepBonus.v):0
+                    name: extraSkillCell.v,
+                    trait: extraSkillsSheet[`C${row}`].v,
+                    value: extraSkillValue.v,
+                    rollBonus: extraSkillRollBonus ? parseInt(extraSkillRollBonus.v) : 0,
+                    keepBonus: extraSkillKeepBonus ? parseInt(extraSkillKeepBonus.v) : 0
                 };
                 skills[skill.name] = skill;
                 row++;
@@ -447,14 +612,11 @@ class Sheet {
                 extraSkillTrait = extraSkillsSheet[`C${row}`];
                 extraSkillValue = extraSkillsSheet[`D${row}`];
             }
-        }
-        catch(e)
-        {
+        } catch (e) {
             throw new Error(`${errPrefix}There was a problem reading the sheet 3 skills range`);
         }
 
-        try
-        {
+        try {
             let shugenjaAffinityRingCell = spellSheet['C1'];
             if (shugenjaAffinityRingCell) {
                 shugenjaStuff = {};
@@ -478,8 +640,7 @@ class Sheet {
                     let ringCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 1, r: address.r})];
                     let levelCell = spellSheet[xlsx.utils.encode_cell({c: address.c + 2, r: address.r})];
 
-                    if(currentSpellNameCell && ringCell && levelCell)
-                    {
+                    if (currentSpellNameCell && ringCell && levelCell) {
                         shugenjaStuff.spells.push({
                             name: currentSpellNameCell.v,
                             ring: ringCell.v,
@@ -491,48 +652,41 @@ class Sheet {
                         spellRange.e.r++;
                         address = {c: spellRange.s.c, r: spellRange.s.r}
                         currentSpellNameCell = spellSheet[xlsx.utils.encode_cell(address)];
-                    }
-                    else
-                    {
+                    } else {
                         currentSpellNameCell = null;
                     }
                 }
             }
-        }
-        catch(e)
-        {
+        } catch (e) {
             throw new Error(`${errPrefix}There was a problem loading your Shugenja sheet`);
         }
 
         let voidScore = null;
         let rankScore = null;
 
-        try
-        {
+        try {
             voidScore = {value: baseSheet['A14'].v};
             rankScore = parseInt(baseSheet['O4'].v);
-        }
-        catch(e)
-        {
-            throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore?'Void':'Rank'} score`);
+        } catch (e) {
+            throw new Error(`${errPrefix}There may have been a problem reading your ${voidScore ? 'Void' : 'Rank'} score`);
         }
 
         let data = {
-            clan:baseSheet['N13'].v,
-            house:baseSheet['N14'].v,
+            clan: baseSheet['N13'].v,
+            house: baseSheet['N14'].v,
             tempers:
                 {
-                    glory:{
-                        rank:parseInt(baseSheet['N16'].v),
-                        ticks:parseInt(baseSheet['O16'].v)
+                    glory: {
+                        rank: parseInt(baseSheet['N16'].v),
+                        ticks: parseInt(baseSheet['O16'].v)
                     },
-                    honor:{
-                        rank:parseInt(baseSheet['N17'].v),
-                        ticks:parseInt(baseSheet['O17'].v)
+                    honor: {
+                        rank: parseInt(baseSheet['N17'].v),
+                        ticks: parseInt(baseSheet['O17'].v)
                     },
-                    status:{
-                        rank:parseInt(baseSheet['N18'].v),
-                        ticks:parseInt(baseSheet['O18'].v)
+                    status: {
+                        rank: parseInt(baseSheet['N18'].v),
+                        ticks: parseInt(baseSheet['O18'].v)
                     }
                 },
             void: voidScore,
@@ -541,13 +695,8 @@ class Sheet {
             rank: rankScore,
             shugenja: shugenjaStuff
         };
-
-        return new Sheet(
-            data,
-            url
-        );
+        return data;
     }
-
 }
 
 export default Sheet;
